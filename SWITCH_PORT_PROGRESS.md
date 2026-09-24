@@ -27,8 +27,10 @@ keys, crash dumps, or a packaged game.
 - After the name prompt, the script reaches its initial warning screens and
   starts a sound effect. Another `2168-0002` Data Abort occurs in an SDL
   thread. The last trace is at the warning screen pause; this timing suggests
-  the audio path, but does not establish the cause. A hardware A/B test with
-  audio playback temporarily disabled is pending.
+  the audio path, but does not establish the cause. A hardware A/B test that
+  suppresses both `music.play` and `music.stop` advanced through the warnings
+  and into the story without a crash. This diagnostic run is silent; audio
+  remains unresolved and the bypass is not included in the runtime patch.
 
 ## Reproducing patch application
 
@@ -39,6 +41,9 @@ and hardware validation of the patched runtime remain pending.
 
 The Docker Compose entry point reproduces the fork's runtime build without
 host-specific devkitPro or Python 2 installs. It does not package a game.
+An Apple Silicon run under `linux/amd64` emulation applied all patches, then
+segfaulted in the emulated cross compiler at 28% of the Switch module build.
+The full build still needs validation on native x86-64 Linux.
 
 The Switch presplash previously returned without drawing anything when a game
 did not include `presplash.png` or `presplash.jpg`. `switch_loading.patch` adds

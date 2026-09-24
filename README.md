@@ -70,9 +70,12 @@ cd artifacts && sha256sum -c SHA256SUMS
 The build downloads Ren'Py, pygame_sdl2 and toolchain packages. It needs an
 internet connection and enough disk space for the source tree and artifacts.
 On ARM hosts, Compose defaults to `linux/amd64` emulation because this build
-uses x86 tools. Set `OUTPUT_DIR` to write artifacts elsewhere or
-`BUILD_PLATFORM` to override the target platform. Generated files and any
-private game data are excluded from the Docker build context.
+uses x86 tools. An Apple Silicon test applied all patches but the emulated
+cross compiler segfaulted while compiling `pygame_sdl2.mixer.c`; use a native
+x86-64 Linux host for the full build until this is resolved. Set `OUTPUT_DIR`
+to write artifacts elsewhere or `BUILD_PLATFORM` to override the target
+platform. Generated files and any private game data are excluded from the
+Docker build context.
 
 The build also places a generic loading image in
 `artifacts/switch/romfs/Contents/loading.png`. During startup, the Switch
