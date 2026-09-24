@@ -1,0 +1,48 @@
+--- a/renpy/log.py
++++ b/renpy/log.py
+@@ -160,6 +160,8 @@
+         """
+ 
+         if renpy.switch:
++            if self.file is False:
++                return
+             if not isinstance(s, str):
+                 s = s.decode("latin-1")
+             if not self.raw_write:
+@@ -168,8 +170,12 @@
+                 except Exception:
+                     s = repr((s,) + args)
+                 s += "\n"
+-            with real_open("save://Logs/log.log", "a+") as f:
+-                f.write(str(s))
++            try:
++                with real_open("save://Logs/log.log", "a+") as f:
++                    f.write(str(s))
++            except IOError:
++                # Logging must not abort the game when the save is full.
++                self.file = False
+             return
+ 
+         if self.open():
+--- a/renpy/display/behavior.py
++++ b/renpy/display/behavior.py
+@@ -1720,7 +1720,18 @@
+             raw_text = ev.text
+ 
+             if renpy.switch:
+-                return ev.text
++                if self.value is None or not self.editable:
++                    return ev.text
++
++                # Switch's software keyboard sends the complete field value.
++                # Update InputValue instead of returning from the interaction.
++                text = ev.text
++                if self.length:
++                    text = text[:self.length]
++                self.old_caret_pos = self.caret_pos
++                self.caret_pos = len(text)
++                self.update_text(text, self.editable, check_size=True)
++                raise renpy.display.core.IgnoreEvent()
+ 
+         elif ev.type == pygame.KEYDOWN:
+ 

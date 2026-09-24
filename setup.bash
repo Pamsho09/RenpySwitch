@@ -70,6 +70,7 @@ cp -rf subprocess.pyo renpy_sdk/renpy-$RENPY_VER-sdk/lib/python2.7
 
 pushd renpy-source
 patch -p1 < ../renpy.patch
+patch -p1 < ../switch_fixes.patch
 pushd module
 rm -rf gen gen-static
 popd
