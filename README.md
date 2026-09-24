@@ -49,6 +49,18 @@ execution to continue, but also prevents normal audio stops. That diagnostic
 bypass is not included in this build. See `SWITCH_PORT_PROGRESS.md` for the
 evidence and current limitations.
 
+## Optional 0x52 Universal Ren'Py Mod
+
+The runtime accepts `0x52_URM.rpa` from any compatible Ren'Py game. Place a
+copy of the mod archive in that game's `game/` directory before packaging it;
+the mod itself is not part of this repository or the runtime artifact.
+
+On Switch, hold **L + R** and press **X** to open the mod menu. This maps to
+the mod's existing `Alt+M` shortcut and is active only when the mod loaded.
+Games without the mod keep their usual controller mappings. The shortcut has
+been checked against the mod's scripts and the Ren'Py controller event path;
+it still needs a hardware test with a packaged game.
+
 ## Build with Docker Compose
 
 From a checkout of this branch, with Docker Engine and Docker Compose available:

@@ -34,10 +34,10 @@ keys, crash dumps, or a packaged game.
 
 ## Reproducing patch application
 
-`setup.bash` applies `renpy.patch` and then `switch_fixes.patch` to the Ren'Py
-7.6.3 source tree. The latter was checked with `patch --dry-run -p1` against
-the 7.6.3 source tree from the existing runtime release. A full Switch build
-and hardware validation of the patched runtime remain pending.
+`setup.bash` applies `renpy.patch`, `switch_fixes.patch`,
+`switch_loading.patch`, and `switch_urm.patch` to the Ren'Py 7.6.3 source
+tree. Patch application was checked against the 7.6.3 source tree. A full
+Switch build and hardware validation of the patched runtime remain pending.
 
 The Docker Compose entry point reproduces the fork's runtime build without
 host-specific devkitPro or Python 2 installs. It does not package a game.
@@ -50,3 +50,8 @@ did not include `presplash.png` or `presplash.jpg`. `switch_loading.patch` adds
 a generic fallback image and an indeterminate activity bar driven by the
 existing presplash pump calls. This is intended to replace the long black
 screen during script loading. It needs testing on the rebuilt runtime.
+
+The optional 0x52 Universal Ren'Py Mod has an `Alt+M` key on its overlay.
+`switch_urm.patch` maps L + R + X to that key when the mod is present. It
+does not ship the mod archive and does not depend on a particular game.
+The combination has not yet been tested on Switch hardware.

@@ -71,6 +71,7 @@ pushd renpy-source
 patch -p1 < ../renpy.patch
 patch -p1 < ../switch_fixes.patch
 patch -p1 < ../switch_loading.patch
+patch -p1 < ../switch_urm.patch
 pushd module
 rm -rf gen gen-static
 popd
