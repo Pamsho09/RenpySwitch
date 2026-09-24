@@ -24,6 +24,32 @@
              return
  
          if self.open():
+--- a/renpy/savelocation.py
++++ b/renpy/savelocation.py
+@@ -63,6 +63,11 @@
+ 
+         renpy.util.expose_directory(self.directory)
+ 
++        # A full Switch save can make the probe below mark this location
++        # inactive. Grow and commit it before probing for writability.
++        if renpy.switch:
++            _otrhlibnx.commitsave()
++
+         # Try to write a test file.
+         try:
+             fn = os.path.join(self.directory, "text.txt")
+@@ -166,6 +171,11 @@
+         filename = self.filename(slotname)
+ 
+         with disk_lock:
++            # sync() grows the Switch save, but it normally runs only after
++            # write_file(). Ensure there is space before writing a save.
++            if renpy.switch:
++                _otrhlibnx.commitsave()
++
+             record.write_file(filename)
+ 
+         renpy.util.expose_file(filename)
 --- a/renpy/display/behavior.py
 +++ b/renpy/display/behavior.py
 @@ -1720,7 +1720,18 @@
