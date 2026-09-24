@@ -1,0 +1,10 @@
+services:
+  build:
+    platform: ${BUILD_PLATFORM:-linux/amd64}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - type: bind
+        source: ${OUTPUT_DIR:-./artifacts}
+        target: /artifacts

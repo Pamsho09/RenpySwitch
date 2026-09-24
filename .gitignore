@@ -1,0 +1,13 @@
+/artifacts/
+/raw/
+/renpy-source/
+/renpy_sdk/
+/pygame_sdl2-source/
+/renpy_clear/
+/private/
+/build-switch/
+/.env
+/build-validation.log
+*.keys
+*.nsp
+*.nca

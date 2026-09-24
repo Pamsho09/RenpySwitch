@@ -24,6 +24,11 @@ keys, crash dumps, or a packaged game.
   tested on hardware: the trace recorded a value update and the script
   advanced beyond the name input screen. The patch inside a rebuilt runtime
   has not yet been tested.
+- After the name prompt, the script reaches its initial warning screens and
+  starts a sound effect. Another `2168-0002` Data Abort occurs in an SDL
+  thread. The last trace is at the warning screen pause; this timing suggests
+  the audio path, but does not establish the cause. A hardware A/B test with
+  audio playback temporarily disabled is pending.
 
 ## Reproducing patch application
 
@@ -31,3 +36,12 @@ keys, crash dumps, or a packaged game.
 7.6.3 source tree. The latter was checked with `patch --dry-run -p1` against
 the 7.6.3 source tree from the existing runtime release. A full Switch build
 and hardware validation of the patched runtime remain pending.
+
+The Docker Compose entry point reproduces the fork's runtime build without
+host-specific devkitPro or Python 2 installs. It does not package a game.
+
+The Switch presplash previously returned without drawing anything when a game
+did not include `presplash.png` or `presplash.jpg`. `switch_loading.patch` adds
+a generic fallback image and an indeterminate activity bar driven by the
+existing presplash pump calls. This is intended to replace the long black
+screen during script loading. It needs testing on the rebuilt runtime.

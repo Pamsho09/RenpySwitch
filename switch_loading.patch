@@ -1,0 +1,76 @@
+--- a/renpy/display/presplash.py
++++ b/renpy/display/presplash.py
+@@ -43,6 +43,10 @@
+ # The progress bar (if exists).
+ progress_bar = None
+ 
++# Switch presplash surface. The default image uses an indeterminate indicator.
++switch_surface = None
++switch_default_splash = False
++
+ # The start time.
+ start_time = time.time()
+ 
+@@ -151,6 +155,23 @@
+     if renpy.emscripten:
+         emscripten.sleep(0)
+ 
++    if renpy.switch and switch_surface is not None:
++        if last_pump_time + 1/8 > time.time():
++            return
++        last_pump_time = time.time()
++        if switch_default_splash:
++            x, y, width, height = 178, 770, 1564, 20
++            pygame_sdl2.draw.rect(switch_surface, (40, 67, 86), (x, y, width, height))
++            segment_width = 360
++            segment_x = x + (pump_count * 37) % (width + segment_width) - segment_width
++            left = max(x, segment_x)
++            right = min(x + width, segment_x + segment_width)
++            if right > left:
++                pygame_sdl2.draw.rect(switch_surface, (54, 195, 232),
++                                      (left, y, right - left, height))
++            pygame_sdl2.display.flip()
++        return
++
+     if window is None:
+         return
+ 
+@@ -174,6 +195,8 @@
+     """
+ 
+     global window
++    global switch_surface
++    switch_surface = None
+ 
+     if renpy.emscripten:
+         emscripten.run_script(r"""presplashEnd();""")
+@@ -239,16 +262,25 @@
+ 
+ def start_switch(gamedir):
+     filenames = ['/presplash.png', '/presplash.jpg']
++    use_default = False
+     for fn in filenames:
+         fn = gamedir + fn
+         if os.path.exists(fn):
+             break
+     else:
+-        return
++        fn = 'romfs:/Contents/loading.png'
++        if not os.path.exists(fn):
++            return
++        use_default = True
+ 
+     import pygame_sdl2 as pygame
+     pygame.display.init()
+-    dis = pygame.display.set_mode((1920, 1080))
+-    presplashImg = pygame.image.load(fn)
+-    dis.blit(presplashImg, (0, 0))
++    global switch_surface
++    global switch_default_splash
++    switch_surface = pygame.display.set_mode((1920, 1080))
++    switch_default_splash = use_default
++    presplash_img = pygame.image.load(fn)
++    switch_surface.blit(presplash_img, (0, 0))
++    if use_default:
++        pygame.draw.rect(switch_surface, (40, 67, 86), (178, 770, 1564, 20))
+     pygame.display.flip()

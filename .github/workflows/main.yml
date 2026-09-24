@@ -1,30 +1,19 @@
-name: GitHub Actions Demo
-run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
-on: [push]
+name: Build Switch runtime
+
+on:
+  push:
+  workflow_dispatch:
 
 jobs:
-    build-artifact:
-        name: Build
-        runs-on: ubuntu-24.04
-        container: devkitpro/devkita64:20230910
-
-        steps:
-        - name: Check for dockerenv file
-          run: echo $DEVKITPRO
-            
-        - name: checkout repository
-          uses: actions/checkout@master
-          with:
-            submodules: recursive
-            
-        - name: setup environment
-          run: sudo bash setup.bash
-        
-        - name: build
-          run: sudo bash build.bash
-
-        - name: upload raw
-          uses: actions/upload-artifact@master
-          with:
-            name: raw
-            path: raw
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build with Docker Compose
+        run: docker compose run --build --rm build
+      - name: Upload runtime
+        uses: actions/upload-artifact@v4
+        with:
+          name: renpy-switch-runtime
+          path: artifacts/
+          if-no-files-found: error
