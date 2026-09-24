@@ -82,5 +82,7 @@ The bar indicates activity, not a percentage of work completed.
 
 This builds the reusable runtime. Packaging a particular game and testing it
 on Switch are separate steps; no game assets or console keys are included.
-GitHub Actions runs the same Compose command on Linux and uploads the runtime
-tree as a build artifact.
+The included GitHub Actions workflow uses the same Compose command on Linux
+and uploads the runtime tree as a build artifact. To run it on a fork, enable
+Actions for that fork and merge this branch into its default branch. GitHub
+requires the workflow file on the default branch for manual dispatch.
