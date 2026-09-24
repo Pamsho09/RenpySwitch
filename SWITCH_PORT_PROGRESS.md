@@ -11,7 +11,9 @@ no game files, console keys, packaged titles, or game-specific setup steps.
   activity bar when a game has no presplash image.
 - `switch_urm.patch` maps L + R + X to the `Alt+M` shortcut of the optional
   0x52 Universal Ren'Py Mod. The mapping activates only when the mod loads.
-  The mod archive is supplied separately by the game owner.
+  It also bypasses the mod's automatic update check on Switch, which starts
+  a background thread during initialization. The mod archive is supplied
+  separately by the game owner.
 
 ## Validation
 
@@ -26,8 +28,10 @@ no game files, console keys, packaged titles, or game-specific setup steps.
   without sound. The underlying audio failure is unresolved; the bypass is
   excluded from the runtime build.
 - With `0x52_URM.rpa` in a desktop validation project, Ren'Py loaded the mod
-  and reached the interface. The L + R + X shortcut and mod behavior on
-  Switch still need hardware validation.
+  and reached the interface. An initial Switch trial with the archive stayed
+  on the loading screen before the menu. The update-check bypass is a targeted
+  diagnostic change and has not yet been tested on hardware. The L + R + X
+  shortcut and other mod behavior also remain unverified on Switch.
 - An Apple Silicon build under `linux/amd64` emulation applied the patches but
   the emulated cross compiler segfaulted while building a module. Use native
   x86-64 Linux for reliable builds.

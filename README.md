@@ -56,9 +56,12 @@ the mod itself is not part of this repository or the runtime artifact.
 
 On Switch, hold **L + R** and press **X** to open the mod menu. This maps to
 the mod's existing `Alt+M` shortcut and is active only when the mod loaded.
+The runtime skips the mod's automatic update check on Switch because it starts
+a background thread during initialization. The mod's other features are left
+to its own code.
 Games without the mod keep their usual controller mappings. The shortcut has
 been checked against the mod's scripts and the Ren'Py controller event path;
-it still needs a hardware test with a packaged game.
+the mod still needs a successful startup and menu test on Switch hardware.
 
 ## Build with Docker Compose
 

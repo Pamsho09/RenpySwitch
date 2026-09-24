@@ -1,7 +1,17 @@
 --- a/renpy/common/00keymap.rpy
 +++ b/renpy/common/00keymap.rpy
-@@ -550,1 +550,28 @@
+@@ -550,1 +550,38 @@
      return
++
++# The mod checks for updates during init by starting a Python thread. Its
++# updater is optional and cannot replace an RPA inside read-only RomFS.
++init 998 python:
++    if renpy.switch:
++        _switch_urm_mod = getattr(renpy.store, "x52URM", None)
++        if _switch_urm_mod is not None and hasattr(_switch_urm_mod, "API"):
++            def _switch_urm_skip_update(*args, **kwargs):
++                return None
++            _switch_urm_mod.API.fetchUpdate = _switch_urm_skip_update
 +
 +# Optional 0x52 Universal Ren'Py Mod shortcut for Switch controllers.
 +# The mod already opens with Alt+M; emit that key only when the archive loaded.
