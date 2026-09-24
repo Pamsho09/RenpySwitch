@@ -2,6 +2,7 @@
 .env
 build-validation.log
 artifacts
+artifacts-ci
 raw
 renpy-source
 renpy_sdk
