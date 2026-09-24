@@ -3,6 +3,7 @@
 build-validation.log
 artifacts
 artifacts-ci
+artifacts-ci-urm
 raw
 renpy-source
 renpy_sdk
