@@ -43,7 +43,9 @@ The Docker Compose entry point reproduces the fork's runtime build without
 host-specific devkitPro or Python 2 installs. It does not package a game.
 An Apple Silicon run under `linux/amd64` emulation applied all patches, then
 segfaulted in the emulated cross compiler at 28% of the Switch module build.
-The full build still needs validation on native x86-64 Linux.
+The full build succeeded on native x86-64 Linux in GitHub Actions run
+`36048734192`; the artifact contains the executable, runtime archive,
+compiled common scripts, and loading image. Hardware validation remains.
 
 The Switch presplash previously returned without drawing anything when a game
 did not include `presplash.png` or `presplash.jpg`. `switch_loading.patch` adds
@@ -55,3 +57,7 @@ The optional 0x52 Universal Ren'Py Mod has an `Alt+M` key on its overlay.
 `switch_urm.patch` maps L + R + X to that key when the mod is present. It
 does not ship the mod archive and does not depend on a particular game.
 The combination has not yet been tested on Switch hardware.
+With the mod archive temporarily added to a desktop validation project,
+Ren'Py 7.6.3 loaded the mod's init code and reached interface start without
+an exception. This checks initialization, not menu interaction or Switch
+filesystem behavior.

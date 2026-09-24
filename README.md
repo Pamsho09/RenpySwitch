@@ -83,8 +83,9 @@ The build downloads Ren'Py, pygame_sdl2 and toolchain packages. It needs an
 internet connection and enough disk space for the source tree and artifacts.
 On ARM hosts, Compose defaults to `linux/amd64` emulation because this build
 uses x86 tools. An Apple Silicon test applied all patches but the emulated
-cross compiler segfaulted while compiling `pygame_sdl2.mixer.c`; use a native
-x86-64 Linux host for the full build until this is resolved. Set `OUTPUT_DIR`
+cross compiler segfaulted while compiling `pygame_sdl2.mixer.c`. The same
+Compose build completed on the fork's native x86-64 GitHub Actions runner.
+Use a native x86-64 Linux host for reliable builds. Set `OUTPUT_DIR`
 to write artifacts elsewhere or `BUILD_PLATFORM` to override the target
 platform. Generated files and any private game data are excluded from the
 Docker build context.
@@ -98,6 +99,6 @@ The bar indicates activity, not a percentage of work completed.
 This builds the reusable runtime. Packaging a particular game and testing it
 on Switch are separate steps; no game assets or console keys are included.
 The included GitHub Actions workflow uses the same Compose command on Linux
-and uploads the runtime tree as a build artifact. To run it on a fork, enable
-Actions for that fork and merge this branch into its default branch. GitHub
-requires the workflow file on the default branch for manual dispatch.
+and uploads the runtime tree as a build artifact. Enable Actions on a fork to
+run the workflow on branch pushes. GitHub requires the workflow file on the
+default branch for manual dispatch.
