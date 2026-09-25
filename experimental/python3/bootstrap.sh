@@ -139,7 +139,7 @@ for source in "$pygame_source"/gen3/*.c \
     object="/tmp/python3-switch/pygame-objects/$(basename "${source%.c}").o"
     "$CC" -O2 -fPIC -D__SWITCH__ \
         -IInclude -I. \
-        -I"$pygame_source/src" -I"$pygame_source/gen3" \
+        -I"$pygame_source" -I"$pygame_source/src" -I"$pygame_source/gen3" \
         -I"$DEVKITPRO/libnx/include" \
         -I"$DEVKITPRO/portlibs/switch/include" \
         -I"$DEVKITPRO/portlibs/switch/include/SDL2" \
