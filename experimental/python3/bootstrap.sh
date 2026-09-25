@@ -62,13 +62,30 @@ posix = Path('Modules/posixmodule.c')
 data = posix.read_text()
 needle = '#      define HAVE_FORK       1\n'
 assert data.count(needle) == 1
-posix.write_text(data.replace(needle, '/* libnx has no fork. */\n'))
+data = data.replace(needle, '/* libnx has no fork. */\n')
+for symbol in ('EXECV', 'GETEGID', 'GETEUID', 'GETGID', 'GETPPID',
+               'GETUID', 'PIPE', 'TTYNAME'):
+    import re
+    data = re.sub(r'(?m)^#\s*define HAVE_' + symbol + r'\s+1$',
+                  '/* libnx has no ' + symbol.lower() + ' */', data)
+needle = 'int i = (int)umask(mask);'
+assert data.count(needle) == 1
+data = data.replace(needle, 'int i = 0; /* libnx has no umask */')
+posix.write_text(data)
 config = Path('pyconfig.h')
 data = config.read_text()
 data += ('\n#undef HAVE_FORK\n#undef HAVE_FSTATVFS\n'
          '#undef HAVE_STATVFS\n#undef HAVE_WORKING_TZSET\n'
-         '#undef HAVE_DECL_TZNAME\n#undef HAVE_SYS_RESOURCE_H\n')
+         '#undef HAVE_DECL_TZNAME\n#undef HAVE_SYS_RESOURCE_H\n'
+         '#undef HAVE_FDATASYNC\n#undef HAVE_FCHDIR\n'
+         '#undef HAVE_SYSCONF\n#undef HAVE_TTYNAME_R\n'
+         '#undef HAVE_CHROOT\n#undef HAVE_SETGROUPS\n')
 config.write_text(data)
+setup = Path('Modules/Setup')
+data = setup.read_text()
+needle = 'pwd pwdmodule.c'
+assert data.count(needle) == 1
+setup.write_text(data.replace(needle, '#pwd pwdmodule.c'))
 PY
 
 make -j2 libpython3.9.a
