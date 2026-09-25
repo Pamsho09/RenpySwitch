@@ -13,7 +13,9 @@ void __real_threadExit(void);
 
 void __wrap_threadExit(void)
 {
-    enum { TLS_SLOT_COUNT = (0x200 - 0x108 - sizeof(ThreadVars)) / sizeof(void*) };
+    /* The pinned libnx 4.4.2 binary iterates 27 user TLS slots in threadExit.
+     * ThreadVars is an internal type, so use the verified count here. */
+    enum { TLS_SLOT_COUNT = 27 };
 
     for (int slot = 0; slot < TLS_SLOT_COUNT; ++slot) {
         void *value = threadTlsGet(slot);
