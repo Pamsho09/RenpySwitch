@@ -65,7 +65,8 @@ posix.write_text(data.replace(needle, '/* libnx has no fork. */\n'))
 config = Path('pyconfig.h')
 data = config.read_text()
 data += ('\n#undef HAVE_FORK\n#undef HAVE_FSTATVFS\n'
-         '#undef HAVE_STATVFS\n#undef HAVE_WORKING_TZSET\n')
+         '#undef HAVE_STATVFS\n#undef HAVE_WORKING_TZSET\n'
+         '#undef HAVE_DECL_TZNAME\n')
 config.write_text(data)
 PY
 
