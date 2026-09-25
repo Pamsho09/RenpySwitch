@@ -6,7 +6,7 @@ no game files, console keys, packaged titles, or game-specific setup steps.
 ## Runtime changes
 
 - `switch_fixes.patch` stops engine log writes after an I/O failure, grows the
-  Switch save before probing or writing it, and updates `InputValue` fields
+  Switch save before writing it, and updates `InputValue` fields
   with the complete text returned by the Switch keyboard.
 - `switch_loading.patch` displays a fallback startup image and an indeterminate
   activity bar when a game has no presplash image.
