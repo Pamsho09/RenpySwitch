@@ -34,10 +34,52 @@ static void show_python_run_error(void)
     memcpy(message, heading, used);
     message[used] = '\0';
 
-    /* PyRun_SimpleFileEx prints and clears its exception before returning.
-     * Keep stderr on SD so the actual traceback survives a full title save.
-     */
-    FILE* traceback_file = fopen("sdmc:/renpy-switch-python-error.txt", "rb");
+    /* PyRun_FileExFlags leaves the exception available to the embedding
+     * application. Put its type and message first, even if SD writes fail. */
+    PyObject *type = NULL, *value = NULL, *traceback = NULL;
+    PyErr_Fetch(&type, &value, &traceback);
+    if (type) {
+        PyErr_NormalizeException(&type, &value, &traceback);
+        PyObject *name = PyObject_GetAttrString(type, "__name__");
+        PyObject *description = value ? PyObject_Str(value) : NULL;
+        const char *type_text = name && PyString_Check(name) ? PyString_AsString(name) : "Exception";
+        const char *value_text = description && PyString_Check(description) ? PyString_AsString(description) : "";
+        int count = snprintf(message + used, sizeof(message) - used,
+            "%s: %.1200s\n\n", type_text, value_text);
+        if (count > 0)
+            used += count < (int)(sizeof(message) - used) ? count : sizeof(message) - used - 1;
+        Py_XDECREF(name);
+        Py_XDECREF(description);
+
+        PyObject *module = PyImport_ImportModule("traceback");
+        PyObject *lines = module ? PyObject_CallMethod(module, "format_exception", "OOO",
+            type, value ? value : Py_None, traceback ? traceback : Py_None) : NULL;
+        if (lines && PyList_Check(lines)) {
+            Py_ssize_t length = PyList_Size(lines);
+            for (Py_ssize_t i = 0; i < length && used < sizeof(message) - 1; ++i) {
+                PyObject *line = PyList_GetItem(lines, i);
+                if (line && PyString_Check(line)) {
+                    const char *part = PyString_AsString(line);
+                    size_t available = sizeof(message) - used - 1;
+                    size_t amount = strlen(part);
+                    if (amount > available) amount = available;
+                    memcpy(message + used, part, amount);
+                    used += amount;
+                    message[used] = '\0';
+                }
+            }
+        }
+        Py_XDECREF(lines);
+        Py_XDECREF(module);
+        Py_XDECREF(type);
+        Py_XDECREF(value);
+        Py_XDECREF(traceback);
+        PyErr_Clear();
+    }
+
+    /* The SD copy can contain more context, but the in-memory error above
+     * remains available when the save filesystem or SD cannot be written. */
+    FILE* traceback_file = used == strlen(heading) ? fopen("sdmc:/renpy-switch-python-error.txt", "rb") : NULL;
     if (traceback_file) {
         if (fseek(traceback_file, 0, SEEK_END) == 0) {
             long length = ftell(traceback_file);
@@ -499,13 +541,20 @@ int main(int argc, char* argv[])
      * errors can happen before its own exception handler is installed. */
     PyRun_SimpleString("import sys; sys.stderr = open('sdmc:/renpy-switch-python-error.txt', 'w', 0)");
 
-    python_result = PyRun_SimpleFileEx(renpy_file, "romfs:/Contents/renpy.py", 1);
+    PyObject *main_module = PyImport_AddModule("__main__");
+    PyObject *main_dict = main_module ? PyModule_GetDict(main_module) : NULL;
+    PyObject *file_name = PyString_FromString("romfs:/Contents/renpy.py");
+    if (main_dict && file_name)
+        PyDict_SetItemString(main_dict, "__file__", file_name);
+    Py_XDECREF(file_name);
+    PyObject *run_result = main_dict ? PyRun_FileExFlags(renpy_file,
+        "romfs:/Contents/renpy.py", Py_file_input, main_dict, main_dict, 1, NULL) : NULL;
 
-    if (python_result == -1)
+    if (!run_result)
     {
-        PyRun_SimpleString("sys.stderr.flush()");
         show_python_run_error();
     }
+    Py_DECREF(run_result);
 
     Py_Exit(0);
     return 0;
