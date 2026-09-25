@@ -113,3 +113,9 @@ with ZipFile(target, 'w', ZIP_DEFLATED) as archive:
         archive.write(path, path.relative_to(library).as_posix())
 print(target, target.stat().st_size)
 PY
+
+mkdir -p /tmp/python3-switch/romfs/Contents
+cp /tmp/python3-switch/python39.zip /tmp/python3-switch/romfs/Contents/
+"$DEVKITPRO/tools/bin/elf2nro" \
+    /tmp/python3-switch/smoke.elf /tmp/python3-switch/smoke.nro \
+    --romfsdir=/tmp/python3-switch/romfs
