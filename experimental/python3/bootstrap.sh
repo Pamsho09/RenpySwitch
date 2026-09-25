@@ -225,6 +225,10 @@ done
 "$AR" rcs /tmp/python3-switch/librenpy8-support.a \
     /tmp/python3-switch/renpy-support-objects/*.o
 
+python3 "$project_root/experimental/python3/generate_static_modules.py" \
+    "$pygame_source/gen3" "$renpy_source/module/gen3-static" \
+    /tmp/python3-switch/static_modules.c
+
 # Force all Cython modules into a link probe. This catches missing external
 # symbols before attempting to boot the full Ren'Py package on hardware.
 export PKG_CONFIG_PATH="$DEVKITPRO/portlibs/switch/lib/pkgconfig"
@@ -235,6 +239,7 @@ read -r -a switch_libs <<< "$(pkg-config --libs --static \
 "$CC" -O2 -fPIE -D__SWITCH__ \
     -IInclude -I. -I"$DEVKITPRO/libnx/include" \
     "$project_root/experimental/python3/link_probe.c" \
+    /tmp/python3-switch/static_modules.c \
     -specs="$DEVKITPRO/libnx/switch.specs" \
     -L"$DEVKITPRO/libnx/lib" -L"$DEVKITPRO/portlibs/switch/lib" \
     -Wl,--start-group -Wl,--whole-archive \

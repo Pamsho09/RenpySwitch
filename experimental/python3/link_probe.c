@@ -3,7 +3,7 @@
 #include <switch.h>
 #include <stdio.h>
 
-PyMODINIT_FUNC PyInit__renpy(void);
+int register_renpy8_static_modules(void);
 
 int main(void)
 {
@@ -12,7 +12,7 @@ int main(void)
     Py_DontWriteBytecodeFlag = 1;
     Py_SetPath(L"romfs:/Contents/python39.zip");
 
-    int registered = PyImport_AppendInittab("_renpy", PyInit__renpy);
+    int registered = register_renpy8_static_modules();
     int initialized = 0;
     int imported = 0;
 
