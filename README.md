@@ -30,6 +30,10 @@
 
 - setuptools 0.9.8
 
+This build targets Ren'Py 7.6.3 and Python 2. Games built with Ren'Py 8 and
+Python 3 require a different Switch runtime; copying their RPA files into a
+package made with this build does not convert their compiled scripts.
+
 ## Switch port fixes in progress
 
 `switch_fixes.patch` is applied after `renpy.patch` during setup. It contains
