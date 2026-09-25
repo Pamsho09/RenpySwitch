@@ -129,11 +129,21 @@ curl -fL --retry 3 \
 echo '4630b82d7e9ff3e5a864cd3693b4ef093a8ae9e87c3c7cb9ff5ca7e69299febf  /tmp/python3-switch/pygame_sdl2-2.1.0+renpy8.3.7.tar.gz' | sha256sum -c -
 tar -xf "$pygame_archive" -C /tmp/python3-switch
 pygame_source=/tmp/python3-switch/pygame_sdl2-2.1.0+renpy8.3.7
-"$CC" -O2 -fPIC -D__SWITCH__ \
-    -IInclude -I. \
-    -I"$pygame_source/src" -I"$pygame_source/gen3" \
-    -I"$DEVKITPRO/libnx/include" \
-    -I"$DEVKITPRO/portlibs/switch/include" \
-    -I"$DEVKITPRO/portlibs/switch/include/SDL2" \
-    -c "$pygame_source/gen3/pygame_sdl2.color.c" \
-    -o /tmp/python3-switch/pygame_sdl2.color.o
+mkdir -p /tmp/python3-switch/pygame-objects
+for source in "$pygame_source"/gen3/*.c \
+              "$pygame_source"/src/SDL2_rotozoom.c \
+              "$pygame_source"/src/SDL_gfxPrimitives.c \
+              "$pygame_source"/src/alphablit.c \
+              "$pygame_source"/src/write_jpeg.c \
+              "$pygame_source"/src/write_png.c; do
+    object="/tmp/python3-switch/pygame-objects/$(basename "${source%.c}").o"
+    "$CC" -O2 -fPIC -D__SWITCH__ \
+        -IInclude -I. \
+        -I"$pygame_source/src" -I"$pygame_source/gen3" \
+        -I"$DEVKITPRO/libnx/include" \
+        -I"$DEVKITPRO/portlibs/switch/include" \
+        -I"$DEVKITPRO/portlibs/switch/include/SDL2" \
+        -c "$source" -o "$object"
+done
+"$AR" rcs /tmp/python3-switch/libpygame_sdl2.a \
+    /tmp/python3-switch/pygame-objects/*.o
