@@ -100,3 +100,16 @@ make -j2 libpython3.9.a
     -lm -lz -lnx -o /tmp/python3-switch/smoke.elf
 "$DEVKITPRO/tools/bin/elf2nso" \
     /tmp/python3-switch/smoke.elf /tmp/python3-switch/smoke.nso
+
+python3 - <<'PY'
+from pathlib import Path
+from zipfile import ZipFile, ZIP_DEFLATED
+library = Path('Lib')
+target = Path('/tmp/python3-switch/python39.zip')
+with ZipFile(target, 'w', ZIP_DEFLATED) as archive:
+    for path in sorted(library.rglob('*.py')):
+        if path.relative_to(library).parts[0] in {'test', 'idlelib', 'tkinter'}:
+            continue
+        archive.write(path, path.relative_to(library).as_posix())
+print(target, target.stat().st_size)
+PY
