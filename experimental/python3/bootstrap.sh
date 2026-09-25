@@ -4,6 +4,7 @@ set -euo pipefail
 # First native Ren'Py 8 prerequisite: a CPython 3.9 static library for libnx.
 # Keep this isolated from the working Ren'Py 7 build until it links and runs.
 export DEBIAN_FRONTEND=noninteractive
+project_root=$(pwd)
 apt-get update
 apt-get install -y build-essential curl ca-certificates xz-utils
 
@@ -71,3 +72,14 @@ config.write_text(data)
 PY
 
 make -j2 libpython3.9.a
+
+# Link a small NSO-shaped program before attempting the full engine. This
+# reveals missing libnx/POSIX symbols that the archive build cannot detect.
+"$CC" -O2 -fPIE -D__SWITCH__ \
+    -IInclude -I. -I"$DEVKITPRO/libnx/include" \
+    "$project_root/experimental/python3/smoke.c" libpython3.9.a \
+    -specs="$DEVKITPRO/libnx/switch.specs" \
+    -L"$DEVKITPRO/libnx/lib" -L"$DEVKITPRO/portlibs/switch/lib" \
+    -lm -lz -lnx -o /tmp/python3-switch/smoke.elf
+"$DEVKITPRO/tools/bin/elf2nso" \
+    /tmp/python3-switch/smoke.elf /tmp/python3-switch/smoke.nso
