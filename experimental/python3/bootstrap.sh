@@ -158,7 +158,7 @@ echo 'fd33248d5eea506ff9017c535b5b77e17edf7a77ddaf1bcf542b9cd261ff3fe5  /tmp/pyt
 tar -xf "$renpy_archive" -C /tmp/python3-switch
 python3.9 -m pip install 'Cython==0.29.36' future setuptools
 renpy_source=/tmp/python3-switch/renpy-8.3.7-source
-cp experimental/python3/libhydrogen-switch.h \
+cp "$project_root/experimental/python3/libhydrogen-switch.h" \
     "$renpy_source/module/libhydrogen/impl/random/switch.h"
 python3 - "$renpy_source/module/libhydrogen/impl/random.h" <<'PY'
 from pathlib import Path
