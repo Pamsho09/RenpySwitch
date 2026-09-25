@@ -202,3 +202,25 @@ for source in "$renpy_source"/module/gen3-static/*.c; do
 done
 "$AR" rcs /tmp/python3-switch/librenpy8-modules.a \
     /tmp/python3-switch/renpy-objects/*.o
+
+# The Cython objects reference these hand-written C helpers. Keep them in a
+# separate archive so the next link probe can identify remaining dependencies.
+mkdir -p /tmp/python3-switch/renpy-support-objects
+for source in IMG_savepng.c core.c renpybidicore.c renpysound_core.c \
+              ffmedia.c ftsupport.c ttgsubtable.c; do
+    object="/tmp/python3-switch/renpy-support-objects/${source%.c}.o"
+    "$CC" -O2 -fPIC -D__SWITCH__ -DFRIBIDI_ENTRY= \
+        -IInclude -I. \
+        -I"$renpy_source/module" -I"$renpy_source/module/include" \
+        -I"$pygame_source/src" -I"$pygame_source/gen3" \
+        -I/tmp/python3-switch/renpy-includes \
+        -I"$DEVKITPRO/libnx/include" \
+        -I"$DEVKITPRO/portlibs/switch/include" \
+        -I"$DEVKITPRO/portlibs/switch/include/SDL2" \
+        -I"$DEVKITPRO/portlibs/switch/include/freetype2" \
+        -I"$DEVKITPRO/portlibs/switch/include/fribidi" \
+        -I"$DEVKITPRO/portlibs/switch/include/harfbuzz" \
+        -c "$renpy_source/module/$source" -o "$object"
+done
+"$AR" rcs /tmp/python3-switch/librenpy8-support.a \
+    /tmp/python3-switch/renpy-support-objects/*.o
