@@ -14,6 +14,22 @@ mkdir -p /tmp/python3-switch
 tar -xf "/tmp/${archive}" -C /tmp/python3-switch
 cd "/tmp/python3-switch/Python-${version}"
 
+# CPython 3.9's configure only names Linux, Cygwin, and VxWorks as cross
+# targets. libnx exposes enough POSIX interfaces to use the Linux probes as
+# a starting point; missing calls will be disabled or shimmed explicitly.
+python3 - <<'PY'
+from pathlib import Path
+path = Path('configure')
+data = path.read_text()
+needle = '\t*-*-linux*)\n\t\tac_sys_system=Linux\n'
+assert data.count(needle) == 1
+data = data.replace(needle, '\t*-*-elf*)\n\t\tac_sys_system=Linux\n\t\t;;\n' + needle)
+needle = '\t*-*-linux*)\n\t\tcase "$host_cpu" in\n'
+assert data.count(needle) == 1
+data = data.replace(needle, '\t*-*-elf*)\n\t\t_host_cpu=$host_cpu\n\t\t;;\n' + needle)
+path.write_text(data)
+PY
+
 export DEVKITPRO=/opt/devkitpro
 export PATH="${DEVKITPRO}/devkitA64/bin:${PATH}"
 export CC=aarch64-none-elf-gcc
