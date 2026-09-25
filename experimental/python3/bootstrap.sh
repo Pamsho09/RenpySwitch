@@ -147,3 +147,33 @@ for source in "$pygame_source"/gen3/*.c \
 done
 "$AR" rcs /tmp/python3-switch/libpygame_sdl2.a \
     /tmp/python3-switch/pygame-objects/*.o
+
+# Generate Ren'Py 8.3.7's Python 3 Cython files. The host build is expected
+# to stop at missing desktop SDL headers; all static C files are emitted first.
+renpy_archive=/tmp/python3-switch/renpy-8.3.7-source.tar.bz2
+curl -fL --retry 3 \
+    'https://www.renpy.org/dl/8.3.7/renpy-8.3.7-source.tar.bz2' \
+    -o "$renpy_archive"
+echo 'fd33248d5eea506ff9017c535b5b77e17edf7a77ddaf1bcf542b9cd261ff3fe5  /tmp/python3-switch/renpy-8.3.7-source.tar.bz2' | sha256sum -c -
+tar -xf "$renpy_archive" -C /tmp/python3-switch
+python3.9 -m pip install 'Cython==0.29.36' future setuptools
+renpy_source=/tmp/python3-switch/renpy-8.3.7-source
+(
+    cd "$renpy_source/module"
+    RENPY_ANDROID=1 RENPY_STATIC=1 RENPY_CYTHON_SINGLETHREAD=1 \
+        python3.9 setup.py build > /tmp/python3-switch/renpy-cython.log 2>&1 || true
+)
+generated=$(find "$renpy_source/module/gen3-static" -maxdepth 1 -name '*.c' | wc -l)
+if [ "$generated" -lt 43 ]; then
+    tail -n 60 /tmp/python3-switch/renpy-cython.log
+    exit 1
+fi
+"$CC" -O2 -fPIC -D__SWITCH__ \
+    -IInclude -I. \
+    -I"$renpy_source/module" -I"$renpy_source/module/include" \
+    -I"$pygame_source/src" -I"$pygame_source/gen3" \
+    -I"$DEVKITPRO/libnx/include" \
+    -I"$DEVKITPRO/portlibs/switch/include" \
+    -I"$DEVKITPRO/portlibs/switch/include/SDL2" \
+    -c "$renpy_source/module/gen3-static/renpy.pydict.c" \
+    -o /tmp/python3-switch/renpy.pydict.o
