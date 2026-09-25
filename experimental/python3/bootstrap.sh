@@ -158,6 +158,19 @@ echo 'fd33248d5eea506ff9017c535b5b77e17edf7a77ddaf1bcf542b9cd261ff3fe5  /tmp/pyt
 tar -xf "$renpy_archive" -C /tmp/python3-switch
 python3.9 -m pip install 'Cython==0.29.36' future setuptools
 renpy_source=/tmp/python3-switch/renpy-8.3.7-source
+cp experimental/python3/libhydrogen-switch.h \
+    "$renpy_source/module/libhydrogen/impl/random/switch.h"
+python3 - "$renpy_source/module/libhydrogen/impl/random.h" <<'PY'
+from pathlib import Path
+import sys
+path = Path(sys.argv[1])
+source = path.read_text()
+needle = '#elif defined(__unix__)\n# include "random/unix.h"'
+replacement = '#elif defined(__SWITCH__)\n# include "random/switch.h"\n' + needle
+if source.count(needle) != 1:
+    raise SystemExit('unexpected libhydrogen random backend selector')
+path.write_text(source.replace(needle, replacement))
+PY
 mkdir -p /tmp/python3-switch/renpy-includes/pygame_sdl2
 cp "$pygame_source"/gen3/*.h \
     /tmp/python3-switch/renpy-includes/pygame_sdl2/
