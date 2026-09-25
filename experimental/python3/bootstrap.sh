@@ -52,4 +52,20 @@ export ac_cv_func_dlopen=no
     --without-pymalloc \
     --disable-ipv6
 
+# posixmodule.c assumes fork exists on all Unix-like targets even though
+# libnx has no process forking. Its statvfs wrapper also assumes fstatvfs
+# whenever statvfs was detected. Disable those interfaces consistently.
+python3 - <<'PY'
+from pathlib import Path
+posix = Path('Modules/posixmodule.c')
+data = posix.read_text()
+needle = '#      define HAVE_FORK       1\n'
+assert data.count(needle) == 1
+posix.write_text(data.replace(needle, '/* libnx has no fork. */\n'))
+config = Path('pyconfig.h')
+data = config.read_text()
+data += '\n#undef HAVE_FORK\n#undef HAVE_FSTATVFS\n#undef HAVE_STATVFS\n'
+config.write_text(data)
+PY
+
 make -j2 libpython3.9.a
