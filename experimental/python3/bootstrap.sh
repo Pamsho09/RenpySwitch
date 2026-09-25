@@ -158,6 +158,9 @@ echo 'fd33248d5eea506ff9017c535b5b77e17edf7a77ddaf1bcf542b9cd261ff3fe5  /tmp/pyt
 tar -xf "$renpy_archive" -C /tmp/python3-switch
 python3.9 -m pip install 'Cython==0.29.36' future setuptools
 renpy_source=/tmp/python3-switch/renpy-8.3.7-source
+mkdir -p /tmp/python3-switch/renpy-includes/pygame_sdl2
+cp "$pygame_source"/gen3/*.h \
+    /tmp/python3-switch/renpy-includes/pygame_sdl2/
 (
     cd "$renpy_source/module"
     RENPY_ANDROID=1 RENPY_STATIC=1 RENPY_CYTHON_SINGLETHREAD=1 \
@@ -175,6 +178,7 @@ for source in "$renpy_source"/module/gen3-static/*.c; do
         -IInclude -I. \
         -I"$renpy_source/module" -I"$renpy_source/module/include" \
         -I"$pygame_source/src" -I"$pygame_source/gen3" \
+        -I/tmp/python3-switch/renpy-includes \
         -I"$DEVKITPRO/libnx/include" \
         -I"$DEVKITPRO/portlibs/switch/include" \
         -I"$DEVKITPRO/portlibs/switch/include/SDL2" \
