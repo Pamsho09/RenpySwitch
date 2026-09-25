@@ -19,11 +19,12 @@ no game files, console keys, packaged titles, or game-specific setup steps.
   choice and menu selection bindings remain on the normal face button.
 - `switch/source/sdl_tls.c` routes SDL TLS through its generic implementation.
   `switch/source/tls_exit_guard.c` clears TLS slots that point to unreadable
-  memory before libnx runs thread destructors. A second video crash showed
-  that this scan alone was insufficient, so the current experiment also
-  clears the C++ exception-state slot at the final handoff. This can retain a
-  small per-thread allocation until process exit. The guard performs no file
-  I/O during thread exit.
+  memory before libnx runs thread destructors. Repeated hardware crashes
+  showed that this scan alone is insufficient. A follow-up test that also
+  cleared the C++ exception-state slot just before exit still crashed; that
+  ineffective change was removed. The experimental branch now checks the
+  pointer at the destructor callback itself. The guard performs no file I/O
+  during thread exit.
 - `switch_fixes.patch` enables late-frame dropping for Switch movie channels.
   This keeps the movie timeline moving when software decoding misses frames.
 
@@ -40,10 +41,12 @@ no game files, console keys, packaged titles, or game-specific setup steps.
   in a C++ exception TLS destructor called by libnx `threadExit`. A trial with
   the current guard played music and both variants of a short looping video,
   then progressed through later scenes. A second WebM later triggered a
-  restart in the same C++ TLS destructor. The final slot-clear change is
-  awaiting hardware validation. The observed videos are VP9 at 1080p/60 fps;
-  a separate game-side test is preparing VP8 720p/30 fps overrides. This is
-  one hardware trial, not a general codec or stability certification.
+  restart in the same C++ TLS destructor. A later trial still crashed there
+  despite a final slot clear. The callback guard on
+  `switch-audio-tls-experiment` awaits hardware validation. The tested game's
+  videos are predominantly VP9 at 1080p/60 fps; 720p/30 fps VP8 overrides
+  still stuttered and disturbed audio, so a 540p/24 fps test is prepared.
+  These trials do not establish general codec or runtime stability.
 - With `0x52_URM.rpa` in a desktop validation project, Ren'Py loaded the mod
   and reached the interface. An initial Switch trial with the archive stayed
   on the loading screen before the menu. The update-check bypass is a targeted

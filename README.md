@@ -45,8 +45,9 @@ The text input change was tested with a LayeredFS overlay on Switch: the
 software keyboard updated an `InputValue` field. The native runtime includes
 SDL TLS handling and clears invalid per-thread TLS values before a decoder
 thread exits. One hardware trial played music and a short video, then continued
-through later scenes; another video later crashed, prompting a further TLS
-change that is still awaiting hardware validation. Longer playback and other
+through later scenes; later videos still crashed in C++ TLS cleanup. A
+callback-level guard is being tested on an experimental branch. Longer
+playback and other
 games still need testing. See
 `SWITCH_PORT_PROGRESS.md` for current validation status.
 
