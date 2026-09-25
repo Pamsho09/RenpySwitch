@@ -224,3 +224,26 @@ for source in IMG_savepng.c core.c renpybidicore.c renpysound_core.c \
 done
 "$AR" rcs /tmp/python3-switch/librenpy8-support.a \
     /tmp/python3-switch/renpy-support-objects/*.o
+
+# Force all Cython modules into a link probe. This catches missing external
+# symbols before attempting to boot the full Ren'Py package on hardware.
+export PKG_CONFIG_PATH="$DEVKITPRO/portlibs/switch/lib/pkgconfig"
+read -r -a switch_libs <<< "$(pkg-config --libs --static \
+    egl freetype2 glapi glesv2 libavcodec libavfilter libavformat libavutil \
+    libswresample libswscale sdl2 SDL2_gfx SDL2_image SDL2_mixer SDL2_ttf \
+    zlib harfbuzz fribidi)"
+"$CC" -O2 -fPIE -D__SWITCH__ \
+    -IInclude -I. -I"$DEVKITPRO/libnx/include" \
+    "$project_root/experimental/python3/link_probe.c" \
+    -specs="$DEVKITPRO/libnx/switch.specs" \
+    -L"$DEVKITPRO/libnx/lib" -L"$DEVKITPRO/portlibs/switch/lib" \
+    -Wl,--start-group -Wl,--whole-archive \
+    /tmp/python3-switch/librenpy8-modules.a \
+    /tmp/python3-switch/librenpy8-support.a \
+    /tmp/python3-switch/libpygame_sdl2.a \
+    -Wl,--no-whole-archive libpython3.9.a \
+    "${switch_libs[@]}" -lm -lz -lstdc++ -lnx -Wl,--end-group \
+    -o /tmp/python3-switch/link-probe.elf
+"$DEVKITPRO/tools/bin/elf2nro" \
+    /tmp/python3-switch/link-probe.elf /tmp/python3-switch/link-probe.nro \
+    --romfsdir=/tmp/python3-switch/romfs
