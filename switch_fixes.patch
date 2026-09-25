@@ -74,7 +74,7 @@
  
 --- a/renpy/display/video.py
 +++ b/renpy/display/video.py
-@@ -445,7 +445,9 @@
+@@ -445,7 +445,10 @@
          if renpy.audio.music.channel_defined(name):
              return
 
