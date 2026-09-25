@@ -38,6 +38,9 @@ no game files, console keys, packaged titles, or game-specific setup steps.
   The save preflight patch is awaiting a hardware test. The build now retains
   a compressed ELF with symbols to identify native crashes such as the audio
   thread failure.
+- Python errors before the Ren'Py exception handler now write stderr to
+  `sdmc:/renpy-switch-python-error.txt` and show the captured traceback on
+  the console error screen. This is awaiting a hardware test.
 - An Apple Silicon build under `linux/amd64` emulation applied the patches but
   the emulated cross compiler segfaulted while building a module. Use native
   x86-64 Linux for reliable builds.

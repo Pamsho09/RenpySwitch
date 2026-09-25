@@ -1,6 +1,7 @@
 #include <switch.h>
 #include <Python.h>
 #include <stdio.h>
+#include <string.h>
 
 char python_error_buffer[0x400];
 
@@ -23,6 +24,41 @@ void show_error(const char* message, int exit)
     if (exit == 1) {
         Py_Exit(1);
     }
+}
+
+static void show_python_run_error(void)
+{
+    char message[0x1000];
+    const char* heading = "Python error while running renpy.py.\n\n";
+    size_t used = strlen(heading);
+    memcpy(message, heading, used);
+    message[used] = '\0';
+
+    /* PyRun_SimpleFileEx prints and clears its exception before returning.
+     * Keep stderr on SD so the actual traceback survives a full title save.
+     */
+    FILE* traceback_file = fopen("sdmc:/renpy-switch-python-error.txt", "rb");
+    if (traceback_file) {
+        if (fseek(traceback_file, 0, SEEK_END) == 0) {
+            long length = ftell(traceback_file);
+            if (length > 0) {
+                long start = length > 3000 ? length - 3000 : 0;
+                if (fseek(traceback_file, start, SEEK_SET) == 0) {
+                    size_t count = fread(message + used, 1,
+                        sizeof(message) - used - 1, traceback_file);
+                    used += count;
+                    message[used] = '\0';
+                }
+            }
+        }
+        fclose(traceback_file);
+    }
+
+    if (used == strlen(heading)) {
+        snprintf(message + used, sizeof(message) - used,
+            "No traceback was captured. Check sdmc:/renpy-switch-python-error.txt");
+    }
+    show_error(message, 1);
 }
 
 u64 cur_progid = 0;
@@ -425,11 +461,16 @@ int main(int argc, char* argv[])
 
 #undef x
 
+    /* Open unbuffered stderr before executing renpy.py. Syntax and import
+     * errors can happen before its own exception handler is installed. */
+    PyRun_SimpleString("import sys; sys.stderr = open('sdmc:/renpy-switch-python-error.txt', 'w', 0)");
+
     python_result = PyRun_SimpleFileEx(renpy_file, "romfs:/Contents/renpy.py", 1);
 
     if (python_result == -1)
     {
-        show_error("An uncaught Python exception occurred during renpy.py execution.\n\nPlease look in the save:// folder for more information about this exception.", 1);
+        PyRun_SimpleString("sys.stderr.flush()");
+        show_python_run_error();
     }
 
     Py_Exit(0);
