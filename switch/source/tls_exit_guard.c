@@ -6,7 +6,6 @@
  */
 
 #include <switch.h>
-#include <stdio.h>
 #include <stdint.h>
 
 void __real_threadExit(void);
@@ -27,12 +26,6 @@ void __wrap_threadExit(void)
         Result rc = svcQueryMemory(&info, &page_info, (u64)(uintptr_t)value);
         if (R_FAILED(rc) || info.type == MemType_Unmapped || !(info.perm & Perm_R)) {
             threadTlsSet(slot, NULL);
-            FILE *log = fopen("sdmc:/renpy-switch-tls-diagnostic.txt", "a");
-            if (log) {
-                fprintf(log, "threadExit cleared unmapped TLS slot %d value %p result 0x%x\n",
-                    slot, value, rc);
-                fclose(log);
-            }
         }
     }
 
