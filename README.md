@@ -48,6 +48,9 @@ found an SDL thread crash in the audio path. Temporarily bypassing
 sound. That diagnostic bypass is not included in this build. See
 `SWITCH_PORT_PROGRESS.md` for current validation status.
 
+ZL and ZR each toggle Ren'Py dialogue skipping. The game's normal selection
+button remains available for menus and choices.
+
 ## Optional 0x52 Universal Ren'Py Mod
 
 The runtime accepts `0x52_URM.rpa` from any compatible Ren'Py game. Place a

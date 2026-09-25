@@ -15,6 +15,8 @@ no game files, console keys, packaged titles, or game-specific setup steps.
   It also bypasses the mod's automatic update check on Switch, which starts
   a background thread during initialization. The mod archive is supplied
   separately by the game owner.
+- `renpy.patch` maps either ZL or ZR to Ren'Py's `toggle_skip` action. The
+  choice and menu selection bindings remain on the normal face button.
 
 ## Validation
 
@@ -24,20 +26,32 @@ no game files, console keys, packaged titles, or game-specific setup steps.
   compiled common scripts, and loading image.
 - On hardware, a LayeredFS version of the `InputValue` change updated a field
   using the Switch software keyboard.
-- On hardware, an SDL thread crash was observed when the audio path was used.
-  A diagnostic test bypassing `renpy.audio.music.play` and `stop` continued
-  without sound. The underlying audio failure is unresolved; the bypass is
-  excluded from the runtime build.
+- On hardware, a diagnostic test bypassing `renpy.audio.music.play` and
+  `stop` continued without sound. A separate experimental native build
+  allowed audible playback, but the process still crashed while audio threads
+  exited. The crash reports point to an invalid C++ exception TLS pointer in
+  libnx `threadExit`. The experimental correction is on
+  `switch-audio-tls-experiment`; it is not part of this branch until hardware
+  validation succeeds.
 - With `0x52_URM.rpa` in a desktop validation project, Ren'Py loaded the mod
   and reached the interface. An initial Switch trial with the archive stayed
   on the loading screen before the menu. The update-check bypass is a targeted
   diagnostic change and has not yet been tested on hardware. The L + R + X
   shortcut and other mod behavior also remain unverified on Switch. A later
-  startup reached gameplay, though archive activation has not been confirmed.
-- A save write failed after earlier diagnostics filled the title's save area.
-  The save preflight patch is awaiting a hardware test. The build now retains
-  a compressed ELF with symbols to identify native crashes such as the audio
-  thread failure.
+  startup reached gameplay, and the console traceback reported the mod's
+  version, confirming that the archive loaded on hardware.
+- A save write in the title save area returned I/O error despite a successful
+  preflight commit. A diagnostic overlay redirected saves to a per-title SD
+  directory and produced valid save archives. Save discovery and loading still
+  need a hardware test. The SD override is not in this reusable runtime yet.
+  The build retains a compressed ELF with symbols to identify native crashes.
+- A diagnostic overlay initially transmitted every Ren'Py statement over UDP,
+  which added work during scene changes. The next hardware overlay limits
+  tracing to labels and selected events; this diagnostic tracer is not part
+  of the reusable runtime.
+- Python errors before the Ren'Py exception handler now write stderr to
+  `sdmc:/renpy-switch-python-error.txt` and show the captured traceback on
+  the console error screen. This is awaiting a hardware test.
 - An Apple Silicon build under `linux/amd64` emulation applied the patches but
   the emulated cross compiler segfaulted while building a module. Use native
   x86-64 Linux for reliable builds.
