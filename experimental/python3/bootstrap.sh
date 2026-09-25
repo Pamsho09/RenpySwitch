@@ -6,7 +6,7 @@ set -euo pipefail
 export DEBIAN_FRONTEND=noninteractive
 project_root=$(pwd)
 apt-get update
-apt-get install -y build-essential curl ca-certificates xz-utils
+apt-get install -y build-essential curl ca-certificates xz-utils python3-pip
 
 version=3.9.21
 archive="Python-${version}.tar.xz"
