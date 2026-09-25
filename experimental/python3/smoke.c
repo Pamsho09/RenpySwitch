@@ -1,22 +1,23 @@
 #include <Python.h>
 #include <switch.h>
 #include <stdio.h>
+#include "init_python.h"
 
 int main(void)
 {
     romfsInit();
-    Py_NoSiteFlag = 1;
-    Py_DontWriteBytecodeFlag = 1;
-    Py_SetPath(L"romfs:/Contents/python39.zip");
-    Py_InitializeEx(0);
+    char error[256] = {0};
+    int initialized = switch_python_initialize(
+        L"romfs:/Contents/python39.zip", error, sizeof error);
     int ok = 0;
-    if (Py_IsInitialized()) {
+    if (initialized) {
         ok = (PyRun_SimpleString("switch_python = 1 + 1\nassert switch_python == 2") == 0);
         Py_FinalizeEx();
     }
     FILE *result = fopen("sdmc:/renpy8-python-smoke.txt", "w");
     if (result) {
-        fprintf(result, "CPython 3.9 initialized: %s\n", ok ? "yes" : "no");
+        fprintf(result, "CPython 3.9 initialized: %s\nerror: %s\n",
+                ok ? "yes" : "no", error);
         fclose(result);
     }
     romfsExit();
