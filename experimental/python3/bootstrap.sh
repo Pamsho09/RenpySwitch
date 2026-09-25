@@ -119,3 +119,21 @@ cp /tmp/python3-switch/python39.zip /tmp/python3-switch/romfs/Contents/
 "$DEVKITPRO/tools/bin/elf2nro" \
     /tmp/python3-switch/smoke.elf /tmp/python3-switch/smoke.nro \
     --romfsdir=/tmp/python3-switch/romfs
+
+# Probe one generated pygame_sdl2 extension against the Python 3 headers and
+# the existing Switch SDL2 portlibs before porting the complete module set.
+pygame_archive=/tmp/python3-switch/pygame_sdl2-2.1.0+renpy8.3.7.tar.gz
+curl -fL --retry 3 \
+    'https://www.renpy.org/dl/8.3.7/pygame_sdl2-2.1.0+renpy8.3.7.tar.gz' \
+    -o "$pygame_archive"
+echo '4630b82d7e9ff3e5a864cd3693b4ef093a8ae9e87c3c7cb9ff5ca7e69299febf  /tmp/python3-switch/pygame_sdl2-2.1.0+renpy8.3.7.tar.gz' | sha256sum -c -
+tar -xf "$pygame_archive" -C /tmp/python3-switch
+pygame_source=/tmp/python3-switch/pygame_sdl2-2.1.0+renpy8.3.7
+"$CC" -O2 -fPIC -D__SWITCH__ \
+    -IInclude -I. \
+    -I"$pygame_source/src" -I"$pygame_source/gen3" \
+    -I"$DEVKITPRO/libnx/include" \
+    -I"$DEVKITPRO/portlibs/switch/include" \
+    -I"$DEVKITPRO/portlibs/switch/include/SDL2" \
+    -c "$pygame_source/gen3/pygame_sdl2.color.c" \
+    -o /tmp/python3-switch/pygame_sdl2.color.o
