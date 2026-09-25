@@ -86,3 +86,16 @@
              framedrop = True
          else:
              framedrop = False
+--- a/module/ffmedia.c
++++ b/module/ffmedia.c
+@@ -595,5 +595,9 @@
+ 
+     codec_ctx->codec_id = codec->id;
+ 
+-    av_dict_set(&opts, "threads", "auto", 0);
++    /* On Switch, unlimited decoder workers contend with the audio mixer.
++     * Two video workers are enough for the reduced-resolution VP8 files;
++     * audio decoding stays single-threaded. */
++    codec_ctx->thread_count =
++        codec_ctx->codec_type == AVMEDIA_TYPE_VIDEO ? 2 : 1;
+     av_dict_set(&opts, "refcounted_frames", "0", 0);
