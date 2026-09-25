@@ -33,7 +33,8 @@ no game files, console keys, packaged titles, or game-specific setup steps.
   on the loading screen before the menu. The update-check bypass is a targeted
   diagnostic change and has not yet been tested on hardware. The L + R + X
   shortcut and other mod behavior also remain unverified on Switch. A later
-  startup reached gameplay, though archive activation has not been confirmed.
+  startup reached gameplay, and the console traceback reported the mod's
+  version, confirming that the archive loaded on hardware.
 - A save write failed after earlier diagnostics filled the title's save area.
   The save preflight patch is awaiting a hardware test. The build now retains
   a compressed ELF with symbols to identify native crashes such as the audio
