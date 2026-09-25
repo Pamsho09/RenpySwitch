@@ -29,5 +29,12 @@ void __wrap_threadExit(void)
         }
     }
 
+    /* The C++ exception-state destructor is registered in slot 0 on this
+     * runtime. Video worker teardown can corrupt that slot after a validity
+     * scan, so skip its destructor at the final handoff to libnx. This leaks
+     * that thread's small exception-state allocation, pending a proper
+     * pthread TLS destructor fix. */
+    threadTlsSet(0, NULL);
+
     __real_threadExit();
 }
