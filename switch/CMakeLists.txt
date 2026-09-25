@@ -36,6 +36,7 @@ set(SOURCES
     source/main.c
     source/sdl_tls.c
     source/tls_exit_guard.c
+    source/eh_tls_guard.c
 )
 
 set(CMAKE_PREFIX_PATH "${DEVKITPRO}/portlibs/switch")
@@ -126,7 +127,7 @@ endif()
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 set_property(TARGET ${PROJECT_NAME} APPEND_STRING PROPERTY LINK_FLAGS
-    " -Wl,--wrap=SDL_SYS_GetTLSData -Wl,--wrap=SDL_SYS_SetTLSData -Wl,--wrap=threadExit")
+    " -Wl,--wrap=SDL_SYS_GetTLSData -Wl,--wrap=SDL_SYS_SetTLSData -Wl,--wrap=threadExit -Wl,--wrap=pthread_key_create")
 
 target_link_libraries(${PROJECT_NAME}
     ${DEVKITPRO}/portlibs/switch/lib/libpython2.7.a
