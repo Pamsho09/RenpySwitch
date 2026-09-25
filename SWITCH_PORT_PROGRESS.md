@@ -17,6 +17,10 @@ no game files, console keys, packaged titles, or game-specific setup steps.
   separately by the game owner.
 - `renpy.patch` maps either ZL or ZR to Ren'Py's `toggle_skip` action. The
   choice and menu selection bindings remain on the normal face button.
+- `switch/source/sdl_tls.c` routes SDL TLS through its generic implementation.
+  `switch/source/tls_exit_guard.c` clears TLS slots that point to unreadable
+  memory before libnx runs thread destructors. The guard performs no file I/O
+  during thread exit.
 
 ## Validation
 
@@ -27,12 +31,11 @@ no game files, console keys, packaged titles, or game-specific setup steps.
 - On hardware, a LayeredFS version of the `InputValue` change updated a field
   using the Switch software keyboard.
 - On hardware, a diagnostic test bypassing `renpy.audio.music.play` and
-  `stop` continued without sound. A separate experimental native build
-  allowed audible playback, but the process still crashed while audio threads
-  exited. The crash reports point to an invalid C++ exception TLS pointer in
-  libnx `threadExit`. The experimental correction is on
-  `switch-audio-tls-experiment`; it is not part of this branch until hardware
-  validation succeeds.
+  `stop` continued without sound. Later crash reports located the native fault
+  in a C++ exception TLS destructor called by libnx `threadExit`. A trial with
+  the current guard played music and both variants of a short looping video,
+  then progressed through later scenes for more than a minute. This is one
+  hardware trial, not a general codec or stability certification.
 - With `0x52_URM.rpa` in a desktop validation project, Ren'Py loaded the mod
   and reached the interface. An initial Switch trial with the archive stayed
   on the loading screen before the menu. The update-check bypass is a targeted
@@ -42,8 +45,9 @@ no game files, console keys, packaged titles, or game-specific setup steps.
   version, confirming that the archive loaded on hardware.
 - A save write in the title save area returned I/O error despite a successful
   preflight commit. A diagnostic overlay redirected saves to a per-title SD
-  directory and produced valid save archives. Save discovery and loading still
-  need a hardware test. The SD override is not in this reusable runtime yet.
+  directory and produced valid save archives. In the latest hardware trial,
+  the loader discovered both slots and gameplay resumed from a save. The SD
+  override is still specific to that test and is not in this reusable runtime.
   The build retains a compressed ELF with symbols to identify native crashes.
 - A diagnostic overlay initially transmitted every Ren'Py statement over UDP,
   which added work during scene changes. The next hardware overlay limits

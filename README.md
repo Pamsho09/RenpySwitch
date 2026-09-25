@@ -42,10 +42,10 @@ two runtime fixes for Ren'Py 7.6.3 on Switch:
   updating the field's variable.
 
 The text input change was tested with a LayeredFS overlay on Switch: the
-software keyboard updated an `InputValue` field. Separate hardware testing
-found an SDL thread crash in the audio path. Temporarily bypassing
-`renpy.audio.music.play` and `stop` allowed execution to continue without
-sound. That diagnostic bypass is not included in this build. See
+software keyboard updated an `InputValue` field. The native runtime includes
+SDL TLS handling and clears invalid per-thread TLS values before a decoder
+thread exits. One hardware trial played music and a short video, then continued
+through later scenes. Longer playback and other games still need testing. See
 `SWITCH_PORT_PROGRESS.md` for current validation status.
 
 ZL and ZR each toggle Ren'Py dialogue skipping. The game's normal selection
