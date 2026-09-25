@@ -64,7 +64,8 @@ assert data.count(needle) == 1
 posix.write_text(data.replace(needle, '/* libnx has no fork. */\n'))
 config = Path('pyconfig.h')
 data = config.read_text()
-data += '\n#undef HAVE_FORK\n#undef HAVE_FSTATVFS\n#undef HAVE_STATVFS\n'
+data += ('\n#undef HAVE_FORK\n#undef HAVE_FSTATVFS\n'
+         '#undef HAVE_STATVFS\n#undef HAVE_WORKING_TZSET\n')
 config.write_text(data)
 PY
 
