@@ -69,36 +69,70 @@ static PyObject* commitsave(PyObject* self, PyObject* args)
     u64 total_size = 0;
     u64 free_size = 0;
     FsFileSystem* FsSave = fsdevGetDeviceFileSystem("save");
-
     FsSaveDataInfoReader reader;
     FsSaveDataInfo info;
-    s64 total_entries=0;
-    Result rc=0;
-    
-    fsdevCommitDevice("save");
-    fsFsGetTotalSpace(FsSave, "/", &total_size);
-    fsFsGetFreeSpace(FsSave, "/", &free_size);
+    s64 total_entries = 0;
+    Result rc = 0;
+    bool found = false;
+
+    if (!FsSave) {
+        PyErr_SetString(PyExc_IOError, "Switch save is not mounted");
+        return NULL;
+    }
+    rc = fsFsGetTotalSpace(FsSave, "/", &total_size);
+    if (R_FAILED(rc)) {
+        PyErr_Format(PyExc_IOError, "Switch save total space failed: 0x%x", rc);
+        return NULL;
+    }
+    rc = fsFsGetFreeSpace(FsSave, "/", &free_size);
+    if (R_FAILED(rc)) {
+        PyErr_Format(PyExc_IOError, "Switch save free space failed: 0x%x", rc);
+        return NULL;
+    }
     if (free_size < 0x800000) {
         u64 new_size = total_size + 0x800000;
-
-        fsdevUnmountDevice("save");
-        fsOpenSaveDataInfoReader(&reader, FsSaveDataSpaceId_User);
+        /* Commit before closing the mount. A full save can make this fail;
+         * growing it can still recover the space, so retain that error only
+         * if the extension itself cannot complete. */
+        Result commit_rc = fsdevCommitDevice("save");
+        if (fsdevUnmountDevice("save") < 0) {
+            PyErr_SetString(PyExc_IOError, "Switch save unmount failed");
+            return NULL;
+        }
+        rc = fsOpenSaveDataInfoReader(&reader, FsSaveDataSpaceId_User);
+        if (R_FAILED(rc)) {
+            fsdevMountSaveData("save", cur_progid, userID);
+            PyErr_Format(PyExc_IOError, "Switch save info reader failed: 0x%x", rc);
+            return NULL;
+        }
 
         while(1) {
             rc = fsSaveDataInfoReaderRead(&reader, &info, 1, &total_entries);
             if (R_FAILED(rc) || total_entries==0) break;
 
             if (info.save_data_type == FsSaveDataType_Account && userID.uid[0] == info.uid.uid[0] && userID.uid[1] == info.uid.uid[1] && info.application_id == cur_progid) {
-                fsExtendSaveDataFileSystem(info.save_data_space_id, info.save_data_id, new_size, 0x400000);
+                found = true;
+                rc = fsExtendSaveDataFileSystem(info.save_data_space_id, info.save_data_id, new_size, 0x400000);
                 break;
             }
         }
 
         fsSaveDataInfoReaderClose(&reader);
-        fsdevMountSaveData("save", cur_progid, userID);
-
+        Result mount_rc = fsdevMountSaveData("save", cur_progid, userID);
+        if (R_FAILED(mount_rc)) {
+            PyErr_Format(PyExc_IOError, "Switch save remount failed: 0x%x (extension 0x%x)", mount_rc, rc);
+            return NULL;
+        }
+        if (R_FAILED(rc)) {
+            PyErr_Format(PyExc_IOError, "Switch save extension failed: 0x%x (commit 0x%x)", rc, commit_rc);
+            return NULL;
+        }
+        if (!found) {
+            PyErr_SetString(PyExc_IOError, "Switch save record not found for current user");
+            return NULL;
+        }
     }
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static PyObject* startboost(PyObject* self, PyObject* args)
