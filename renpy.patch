@@ -770,7 +770,7 @@ diff -Naur b/renpy/common/00keymap.rpy a/renpy/common/00keymap.rpy
      config.keymap = { k : _keymap_list(v) for k, v in config.keymap.items() }
  
      config.pad_bindings = {
-+        "pad_lefttrigger_pos" : [ "dismiss", "button_select", "bar_activate", "bar_deactivate", ],
++        "pad_lefttrigger_pos" : [ "toggle_skip", ],
          "pad_leftshoulder_press" : [ "rollback", ],
 -        "pad_lefttrigger_pos" : [ "rollback", ],
 -        "pad_back_press" : [ "rollback", ],
@@ -781,7 +781,7 @@ diff -Naur b/renpy/common/00keymap.rpy a/renpy/common/00keymap.rpy
 +        "pad_back_press" : [ "game_menu", ],
  
 -        "pad_guide_press" : [ "game_menu", ],
-+        "pad_righttrigger_pos" : [ "dismiss", "button_select", "bar_activate", "bar_deactivate" ],
++        "pad_righttrigger_pos" : [ "toggle_skip", ],
 +        "pad_rightshoulder_press" : [ "toggle_skip", ],
          "pad_start_press" : [ "game_menu", ],
  

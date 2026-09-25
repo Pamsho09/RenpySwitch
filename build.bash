@@ -58,6 +58,7 @@ popd
 popd
 
 mkdir -p ./raw/switch/exefs
+cp ./switch/build/renpy-switch ./renpy-switch.elf
 mv ./switch/build/renpy-switch.nso ./raw/switch/exefs/main
 rm -rf switch include source pygame_sdl2-source
 
@@ -99,6 +100,7 @@ cp -r ./renpy_clear/renpy/common ./raw/switch/romfs/Contents/renpy/
 #cp -r ./renpy_clear/renpy/common ./raw/android/assets/renpy/
 #mv private.mp3 ./raw/android/assets
 cp ./renpy_clear/renpy.py ./raw/switch/romfs/Contents/
+cp ./assets/loading.png ./raw/switch/romfs/Contents/loading.png
 #unzip -qq ./raw/lib.zip -d ./raw/lib/
 #rm ./raw/lib.zip
 cp -r ./renpy_clear/lib/python2.7/. ./raw/lib
