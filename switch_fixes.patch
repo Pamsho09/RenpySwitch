@@ -60,3 +60,17 @@
  
          elif ev.type == pygame.KEYDOWN:
  
+--- a/renpy/display/video.py
++++ b/renpy/display/video.py
+@@ -445,7 +445,10 @@
+         if renpy.audio.music.channel_defined(name):
+             return
+
+-        if self.mask:
++        if renpy.switch:
++            # Keep movie time in sync when software decoding misses frames.
++            framedrop = True
++        elif self.mask:
+             framedrop = True
+         else:
+             framedrop = False

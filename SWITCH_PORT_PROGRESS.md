@@ -19,8 +19,13 @@ no game files, console keys, packaged titles, or game-specific setup steps.
   choice and menu selection bindings remain on the normal face button.
 - `switch/source/sdl_tls.c` routes SDL TLS through its generic implementation.
   `switch/source/tls_exit_guard.c` clears TLS slots that point to unreadable
-  memory before libnx runs thread destructors. The guard performs no file I/O
-  during thread exit.
+  memory before libnx runs thread destructors. A second video crash showed
+  that this scan alone was insufficient, so the current experiment also
+  clears the C++ exception-state slot at the final handoff. This can retain a
+  small per-thread allocation until process exit. The guard performs no file
+  I/O during thread exit.
+- `switch_fixes.patch` enables late-frame dropping for Switch movie channels.
+  This keeps the movie timeline moving when software decoding misses frames.
 
 ## Validation
 
@@ -34,8 +39,11 @@ no game files, console keys, packaged titles, or game-specific setup steps.
   `stop` continued without sound. Later crash reports located the native fault
   in a C++ exception TLS destructor called by libnx `threadExit`. A trial with
   the current guard played music and both variants of a short looping video,
-  then progressed through later scenes for more than a minute. This is one
-  hardware trial, not a general codec or stability certification.
+  then progressed through later scenes. A second WebM later triggered a
+  restart in the same C++ TLS destructor. The final slot-clear change is
+  awaiting hardware validation. The observed videos are VP9 at 1080p/60 fps;
+  a separate game-side test is preparing VP8 720p/30 fps overrides. This is
+  one hardware trial, not a general codec or stability certification.
 - With `0x52_URM.rpa` in a desktop validation project, Ren'Py loaded the mod
   and reached the interface. An initial Switch trial with the archive stayed
   on the loading screen before the menu. The update-check bypass is a targeted
