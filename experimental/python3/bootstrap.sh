@@ -171,6 +171,17 @@ if source.count(needle) != 1:
     raise SystemExit('unexpected libhydrogen random backend selector')
 path.write_text(source.replace(needle, replacement))
 PY
+python3 - "$renpy_source/module/ffmedia.c" <<'PY'
+from pathlib import Path
+import sys
+path = Path(sys.argv[1])
+source = path.read_text()
+needle = '#ifndef _WIN32\n#define USE_POSIX_MEMALIGN\n#endif'
+replacement = '#if !defined(_WIN32) && !defined(__SWITCH__)\n#define USE_POSIX_MEMALIGN\n#endif'
+if source.count(needle) != 1:
+    raise SystemExit('unexpected ffmedia allocation selector')
+path.write_text(source.replace(needle, replacement))
+PY
 mkdir -p /tmp/python3-switch/renpy-includes/pygame_sdl2
 cp "$pygame_source"/gen3/*.h \
     /tmp/python3-switch/renpy-includes/pygame_sdl2/
