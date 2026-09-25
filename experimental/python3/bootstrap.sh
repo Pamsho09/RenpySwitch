@@ -168,12 +168,20 @@ if [ "$generated" -lt 43 ]; then
     tail -n 60 /tmp/python3-switch/renpy-cython.log
     exit 1
 fi
-"$CC" -O2 -fPIC -D__SWITCH__ \
-    -IInclude -I. \
-    -I"$renpy_source/module" -I"$renpy_source/module/include" \
-    -I"$pygame_source/src" -I"$pygame_source/gen3" \
-    -I"$DEVKITPRO/libnx/include" \
-    -I"$DEVKITPRO/portlibs/switch/include" \
-    -I"$DEVKITPRO/portlibs/switch/include/SDL2" \
-    -c "$renpy_source/module/gen3-static/renpy.pydict.c" \
-    -o /tmp/python3-switch/renpy.pydict.o
+mkdir -p /tmp/python3-switch/renpy-objects
+for source in "$renpy_source"/module/gen3-static/*.c; do
+    object="/tmp/python3-switch/renpy-objects/$(basename "${source%.c}").o"
+    "$CC" -O2 -fPIC -D__SWITCH__ -DFRIBIDI_ENTRY= \
+        -IInclude -I. \
+        -I"$renpy_source/module" -I"$renpy_source/module/include" \
+        -I"$pygame_source/src" -I"$pygame_source/gen3" \
+        -I"$DEVKITPRO/libnx/include" \
+        -I"$DEVKITPRO/portlibs/switch/include" \
+        -I"$DEVKITPRO/portlibs/switch/include/SDL2" \
+        -I"$DEVKITPRO/portlibs/switch/include/freetype2" \
+        -I"$DEVKITPRO/portlibs/switch/include/fribidi" \
+        -I"$DEVKITPRO/portlibs/switch/include/harfbuzz" \
+        -c "$source" -o "$object"
+done
+"$AR" rcs /tmp/python3-switch/librenpy8-modules.a \
+    /tmp/python3-switch/renpy-objects/*.o
