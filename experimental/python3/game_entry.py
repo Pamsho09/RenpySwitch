@@ -13,7 +13,47 @@ def stage(message):
         out.write(message + "\n")
 
 
+def path_to_renpy_base():
+    return BASE
+
+
+def path_to_gamedir(basedir, name):
+    return BASE + "/game"
+
+
+def path_to_common(basedir):
+    return "romfs:/Contents/common"
+
+
+def path_to_saves(gamedir, save_directory=None):
+    return BASE + "/saves"
+
+
+def path_to_logdir(basedir):
+    return BASE + "/logs"
+
+
+_original_import_all = None
+_original_main = None
+
+
+def engine_import_all():
+    global _original_main
+    import renpy
+    stage("Importing full RenPy engine")
+    _original_import_all()
+    stage("Engine modules loaded; preparing game initialization")
+    _original_main = renpy.main.main
+    renpy.main.main = game_main
+
+
+def game_main():
+    stage("Initializing game scripts and display")
+    return _original_main()
+
+
 def run():
+    global _original_import_all
     switch_bootstrap.install()
     sys.stdout = sys.stderr
     os.makedirs(BASE + "/logs", exist_ok=True)
@@ -26,28 +66,15 @@ def run():
     stage("Checking game files")
     if not os.path.isfile(BASE + "/game/archive.rpa"):
         raise FileNotFoundError(BASE + "/game/archive.rpa")
-    import renpy_launcher as launcher
-    launcher.path_to_renpy_base = lambda: BASE
-    launcher.path_to_gamedir = lambda basedir, name: BASE + "/game"
-    launcher.path_to_common = lambda basedir: "romfs:/Contents/common"
-    launcher.path_to_saves = lambda gamedir, save_directory=None: BASE + "/saves"
-    launcher.path_to_logdir = lambda basedir: BASE + "/logs"
+    import switch_launcher as launcher
+    launcher.path_to_renpy_base = path_to_renpy_base
+    launcher.path_to_gamedir = path_to_gamedir
+    launcher.path_to_common = path_to_common
+    launcher.path_to_saves = path_to_saves
+    launcher.path_to_logdir = path_to_logdir
     import renpy
-    original_import_all = renpy.import_all
-
-    def import_all():
-        stage("Importing full RenPy engine")
-        original_import_all()
-        stage("Engine modules loaded; preparing game initialization")
-        original_main = renpy.main.main
-
-        def game_main():
-            stage("Initializing game scripts and display")
-            return original_main()
-
-        renpy.main.main = game_main
-
-    renpy.import_all = import_all
+    _original_import_all = renpy.import_all
+    renpy.import_all = engine_import_all
     stage("Starting RenPy bootstrap")
     try:
         launcher.main()

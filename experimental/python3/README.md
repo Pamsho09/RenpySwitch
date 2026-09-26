@@ -84,3 +84,15 @@ treated as absolute. Desktop editor/TTS/relaunch integrations report ENOSYS
 when asked to spawn a process. The launcher requests the GLES2 renderer.
 This is the first full game startup attempt; gameplay, input, save/load and
 multimedia are not yet validated. Game assets are never included in CI.
+
+### First game startup result
+
+Build 36265211436 reached the full engine import and then failed in
+`renpy.Backup`: the distributor launcher was named `renpy_launcher` and its
+locally defined path callbacks could not be pickled. It is now named
+`switch_launcher`, outside Ren'Py's module backup prefix, and all callbacks
+and progress hooks are module-level functions. A host check using the actual
+Ren'Py Backup class confirms callback serialization works even when included
+in a module with the renpy prefix. The native stdlib also gains BLAKE2 and
+SHA-3/SHAKE, missing from the first game's hashlib import. Hardware retest
+is still required; this failure happened before game script initialization.

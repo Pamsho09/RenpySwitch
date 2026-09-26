@@ -36,7 +36,7 @@ def main():
         for name in ("switch_bootstrap.py", "switch_process.py", "game_entry.py"):
             archive.write(Path(__file__).with_name(name), name)
             count += 1
-        archive.write(args.renpy_package.parent / "renpy.py", "renpy_launcher.py")
+        archive.write(args.renpy_package.parent / "renpy.py", "switch_launcher.py")
         count += 1
         count += add_python_tree(archive, args.renpy_package, Path("renpy"))
         count += add_python_tree(archive, args.pygame_package, Path("pygame_sdl2"))

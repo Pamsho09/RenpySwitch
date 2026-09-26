@@ -24,7 +24,11 @@ int main(void)
             "assert pickle.loads(pickle.dumps({'test': 42})) == {'test': 42}\n"
             "assert math.isqrt(144) == 12\n"
             "assert len(os.urandom(32)) == 32\n"
-            "assert 0 <= random.random() < 1\n") == 0);
+            "assert 0 <= random.random() < 1\n"
+            "import hashlib\n"
+            "assert hashlib.blake2b(b'abc').hexdigest() == 'ba80a53f981c4d0d6a2797b69f12f6e94c212f14685ac4b74b12bb6fdbffa2d17d87c5392aab792dc252d5de4533cc9518d38aa8dbf1925ab92386edd4009923'\n"
+            "assert hashlib.sha3_256(b'abc').hexdigest() == '3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532'\n"
+            "for name in hashlib.algorithms_guaranteed: hashlib.new(name, b'abc')\n") == 0);
     }
     FILE *result = fopen("sdmc:/renpy8-python-smoke.txt", "w");
     if (result) {
