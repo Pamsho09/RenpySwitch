@@ -1,6 +1,7 @@
 #include <switch.h>
 #include <Python.h>
 #include <stdio.h>
+#include <string.h>
 
 char python_error_buffer[0x400];
 
@@ -25,6 +26,83 @@ void show_error(const char* message, int exit)
     }
 }
 
+static void show_python_run_error(void)
+{
+    char message[0x1000];
+    const char* heading = "Python error while running renpy.py.\n\n";
+    size_t used = strlen(heading);
+    memcpy(message, heading, used);
+    message[used] = '\0';
+
+    /* PyRun_FileExFlags leaves the exception available to the embedding
+     * application. Put its type and message first, even if SD writes fail. */
+    PyObject *type = NULL, *value = NULL, *traceback = NULL;
+    PyErr_Fetch(&type, &value, &traceback);
+    if (type) {
+        PyErr_NormalizeException(&type, &value, &traceback);
+        PyObject *name = PyObject_GetAttrString(type, "__name__");
+        PyObject *description = value ? PyObject_Str(value) : NULL;
+        const char *type_text = name && PyString_Check(name) ? PyString_AsString(name) : "Exception";
+        const char *value_text = description && PyString_Check(description) ? PyString_AsString(description) : "";
+        int count = snprintf(message + used, sizeof(message) - used,
+            "%s: %.1200s\n\n", type_text, value_text);
+        if (count > 0)
+            used += count < (int)(sizeof(message) - used) ? count : sizeof(message) - used - 1;
+        Py_XDECREF(name);
+        Py_XDECREF(description);
+
+        PyObject *module = PyImport_ImportModule("traceback");
+        PyObject *lines = module ? PyObject_CallMethod(module, "format_exception", "OOO",
+            type, value ? value : Py_None, traceback ? traceback : Py_None) : NULL;
+        if (lines && PyList_Check(lines)) {
+            Py_ssize_t length = PyList_Size(lines);
+            for (Py_ssize_t i = 0; i < length && used < sizeof(message) - 1; ++i) {
+                PyObject *line = PyList_GetItem(lines, i);
+                if (line && PyString_Check(line)) {
+                    const char *part = PyString_AsString(line);
+                    size_t available = sizeof(message) - used - 1;
+                    size_t amount = strlen(part);
+                    if (amount > available) amount = available;
+                    memcpy(message + used, part, amount);
+                    used += amount;
+                    message[used] = '\0';
+                }
+            }
+        }
+        Py_XDECREF(lines);
+        Py_XDECREF(module);
+        Py_XDECREF(type);
+        Py_XDECREF(value);
+        Py_XDECREF(traceback);
+        PyErr_Clear();
+    }
+
+    /* The SD copy can contain more context, but the in-memory error above
+     * remains available when the save filesystem or SD cannot be written. */
+    FILE* traceback_file = used == strlen(heading) ? fopen("sdmc:/renpy-switch-python-error.txt", "rb") : NULL;
+    if (traceback_file) {
+        if (fseek(traceback_file, 0, SEEK_END) == 0) {
+            long length = ftell(traceback_file);
+            if (length > 0) {
+                long start = length > 3000 ? length - 3000 : 0;
+                if (fseek(traceback_file, start, SEEK_SET) == 0) {
+                    size_t count = fread(message + used, 1,
+                        sizeof(message) - used - 1, traceback_file);
+                    used += count;
+                    message[used] = '\0';
+                }
+            }
+        }
+        fclose(traceback_file);
+    }
+
+    if (used == strlen(heading)) {
+        snprintf(message + used, sizeof(message) - used,
+            "No traceback was captured. Check sdmc:/renpy-switch-python-error.txt");
+    }
+    show_error(message, 1);
+}
+
 u64 cur_progid = 0;
 AccountUid userID={0};
 
@@ -33,36 +111,70 @@ static PyObject* commitsave(PyObject* self, PyObject* args)
     u64 total_size = 0;
     u64 free_size = 0;
     FsFileSystem* FsSave = fsdevGetDeviceFileSystem("save");
-
     FsSaveDataInfoReader reader;
     FsSaveDataInfo info;
-    s64 total_entries=0;
-    Result rc=0;
-    
-    fsdevCommitDevice("save");
-    fsFsGetTotalSpace(FsSave, "/", &total_size);
-    fsFsGetFreeSpace(FsSave, "/", &free_size);
+    s64 total_entries = 0;
+    Result rc = 0;
+    bool found = false;
+
+    if (!FsSave) {
+        PyErr_SetString(PyExc_IOError, "Switch save is not mounted");
+        return NULL;
+    }
+    rc = fsFsGetTotalSpace(FsSave, "/", &total_size);
+    if (R_FAILED(rc)) {
+        PyErr_Format(PyExc_IOError, "Switch save total space failed: 0x%x", rc);
+        return NULL;
+    }
+    rc = fsFsGetFreeSpace(FsSave, "/", &free_size);
+    if (R_FAILED(rc)) {
+        PyErr_Format(PyExc_IOError, "Switch save free space failed: 0x%x", rc);
+        return NULL;
+    }
     if (free_size < 0x800000) {
         u64 new_size = total_size + 0x800000;
-
-        fsdevUnmountDevice("save");
-        fsOpenSaveDataInfoReader(&reader, FsSaveDataSpaceId_User);
+        /* Commit before closing the mount. A full save can make this fail;
+         * growing it can still recover the space, so retain that error only
+         * if the extension itself cannot complete. */
+        Result commit_rc = fsdevCommitDevice("save");
+        if (fsdevUnmountDevice("save") < 0) {
+            PyErr_SetString(PyExc_IOError, "Switch save unmount failed");
+            return NULL;
+        }
+        rc = fsOpenSaveDataInfoReader(&reader, FsSaveDataSpaceId_User);
+        if (R_FAILED(rc)) {
+            fsdevMountSaveData("save", cur_progid, userID);
+            PyErr_Format(PyExc_IOError, "Switch save info reader failed: 0x%x", rc);
+            return NULL;
+        }
 
         while(1) {
             rc = fsSaveDataInfoReaderRead(&reader, &info, 1, &total_entries);
             if (R_FAILED(rc) || total_entries==0) break;
 
             if (info.save_data_type == FsSaveDataType_Account && userID.uid[0] == info.uid.uid[0] && userID.uid[1] == info.uid.uid[1] && info.application_id == cur_progid) {
-                fsExtendSaveDataFileSystem(info.save_data_space_id, info.save_data_id, new_size, 0x400000);
+                found = true;
+                rc = fsExtendSaveDataFileSystem(info.save_data_space_id, info.save_data_id, new_size, 0x400000);
                 break;
             }
         }
 
         fsSaveDataInfoReaderClose(&reader);
-        fsdevMountSaveData("save", cur_progid, userID);
-
+        Result mount_rc = fsdevMountSaveData("save", cur_progid, userID);
+        if (R_FAILED(mount_rc)) {
+            PyErr_Format(PyExc_IOError, "Switch save remount failed: 0x%x (extension 0x%x)", mount_rc, rc);
+            return NULL;
+        }
+        if (R_FAILED(rc)) {
+            PyErr_Format(PyExc_IOError, "Switch save extension failed: 0x%x (commit 0x%x)", rc, commit_rc);
+            return NULL;
+        }
+        if (!found) {
+            PyErr_SetString(PyExc_IOError, "Switch save record not found for current user");
+            return NULL;
+        }
     }
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static PyObject* startboost(PyObject* self, PyObject* args)
@@ -425,12 +537,24 @@ int main(int argc, char* argv[])
 
 #undef x
 
-    python_result = PyRun_SimpleFileEx(renpy_file, "romfs:/Contents/renpy.py", 1);
+    /* Open unbuffered stderr before executing renpy.py. Syntax and import
+     * errors can happen before its own exception handler is installed. */
+    PyRun_SimpleString("import sys; sys.stderr = open('sdmc:/renpy-switch-python-error.txt', 'w', 0)");
 
-    if (python_result == -1)
+    PyObject *main_module = PyImport_AddModule("__main__");
+    PyObject *main_dict = main_module ? PyModule_GetDict(main_module) : NULL;
+    PyObject *file_name = PyString_FromString("romfs:/Contents/renpy.py");
+    if (main_dict && file_name)
+        PyDict_SetItemString(main_dict, "__file__", file_name);
+    Py_XDECREF(file_name);
+    PyObject *run_result = main_dict ? PyRun_FileExFlags(renpy_file,
+        "romfs:/Contents/renpy.py", Py_file_input, main_dict, main_dict, 1, NULL) : NULL;
+
+    if (!run_result)
     {
-        show_error("An uncaught Python exception occurred during renpy.py execution.\n\nPlease look in the save:// folder for more information about this exception.", 1);
+        show_python_run_error();
     }
+    Py_DECREF(run_result);
 
     Py_Exit(0);
     return 0;
