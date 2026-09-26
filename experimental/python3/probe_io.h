@@ -35,7 +35,7 @@ static void probe_show_result(const char *name, int ok, const char *error)
 {
     consoleInit(NULL);
     printf("Agent17 - %s\n\nResult: %s\n%s\n\n"
-           "Logs saved to the SD root.\nThis test does not start the game.\n"
+           "Diagnostic logs are saved on the SD.\n"
            "\nPress A to return to hbmenu.\n", name, ok ? "PASS" : "FAIL", error);
     padConfigureInput(1, HidNpadStyleSet_NpadStandard);
     PadState pad;
