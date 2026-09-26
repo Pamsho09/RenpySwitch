@@ -21,3 +21,11 @@ and writes `sdmc:/renpy8-python-smoke.txt`. `link-probe.nro` checks imports of
 and `sdmc:/renpy8-link-probe-errors.txt`. Neither starts the game. Next comes
 the full engine bootstrap, followed by testing input, saves, audio, and video.
 No Agent17 assets belong in this repository.
+
+The static Python archive now explicitly includes portable stdlib extensions
+in `Setup.local`, including zlib (required to open compressed RomFS ZIPs).
+CPython entropy uses libnx csrng for both hash initialization and os.urandom;
+service failures propagate instead of falling back to /dev/urandom.
+The smoke probe exercises compression, serialization, math, and randomness.
+Earlier smoke NROs without these changes are obsolete. These changes still
+require cross-compilation and a hardware run before startup is confirmed.

@@ -11,7 +11,14 @@ int main(void)
         L"romfs:/Contents/python39.zip", NULL, error, sizeof error);
     int ok = 0;
     if (initialized) {
-        ok = (PyRun_SimpleString("switch_python = 1 + 1\nassert switch_python == 2") == 0);
+        ok = (PyRun_SimpleString(
+            "import zlib, math, struct, random, pickle, datetime, json, unicodedata, os\n"
+            "assert zlib.decompress(zlib.compress(b'Switch')) == b'Switch'\n"
+            "assert struct.unpack('<I', struct.pack('<I', 1234)) == (1234,)\n"
+            "assert pickle.loads(pickle.dumps({'test': 42})) == {'test': 42}\n"
+            "assert math.isqrt(144) == 12\n"
+            "assert len(os.urandom(32)) == 32\n"
+            "assert 0 <= random.random() < 1\n") == 0);
     }
     FILE *result = fopen("sdmc:/renpy8-python-smoke.txt", "w");
     if (result) {
