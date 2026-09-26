@@ -40,7 +40,7 @@ def main():
     args.output.parent.mkdir(parents=True, exist_ok=True)
     count = 0
     with ZipFile(args.output, "w", ZIP_DEFLATED) as archive:
-        for name in ("switch_bootstrap.py", "switch_process.py", "game_entry.py"):
+        for name in ("switch_bootstrap.py", "switch_process.py", "game_entry.py", "switch_profile.py"):
             archive.write(Path(__file__).with_name(name), name)
             count += 1
         archive.write(args.renpy_package.parent / "renpy.py", "switch_launcher.py")

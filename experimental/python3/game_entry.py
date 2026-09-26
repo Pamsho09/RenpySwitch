@@ -66,6 +66,10 @@ def engine_import_all():
 
 
 def game_main():
+    import renpy
+    import switch_profile
+    if switch_profile.apply not in renpy.game.post_init:
+        renpy.game.post_init.append(switch_profile.apply)
     stage("Initializing game scripts and display")
     return _original_main()
 

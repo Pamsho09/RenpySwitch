@@ -134,3 +134,15 @@ from the RenPy 7 branch. It skips unmapped/unreadable values and preserves
 normal destructor calls; it does not explain or repair the underlying TLS
 corruption. The pinned libstdc++ callback offset must be verified in the ELF
 before deployment. Hardware validation remains pending.
+
+### Switch Lite profile and controls
+
+User confirmed language selection/game progress with 9f0bef1, with substantial
+stutter and missing shortcuts. USB log at 20:16 UTC reports a 1739x978 drawable
+and detected Switch Controllers. A post-init profile now requests 1280x720,
+30 FPS and enables controllers. ZL or ZR held emits skip; releasing the final
+held trigger stops skipping. L+R+physical X emits Alt+M only when x52URM.Open
+exists. The mod must already be installed; no cheat archive is bundled.
+Host checks cover both triggers, release order, normal mappings, absent/present
+URM and repeated profile setup. Hardware performance/input validation pending.
+This does not optimize video assets or guarantee sustained 30 FPS.
