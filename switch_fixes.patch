@@ -26,7 +26,19 @@
          if self.open():
 --- a/renpy/savelocation.py
 +++ b/renpy/savelocation.py
-@@ -166,6 +166,11 @@
+@@ -63,6 +63,11 @@
+ 
+         renpy.util.expose_directory(self.directory)
+ 
++        # A full Switch save can make the probe below mark this location
++        # inactive. Grow and commit it before probing for writability.
++        if renpy.switch:
++            _otrhlibnx.commitsave()
++
+         # Try to write a test file.
+         try:
+             fn = os.path.join(self.directory, "text.txt")
+@@ -166,6 +171,11 @@
          filename = self.filename(slotname)
  
          with disk_lock:
@@ -74,3 +86,16 @@
              framedrop = True
          else:
              framedrop = False
+--- a/module/ffmedia.c
++++ b/module/ffmedia.c
+@@ -595,5 +595,9 @@
+ 
+     codec_ctx->codec_id = codec->id;
+ 
+-    av_dict_set(&opts, "threads", "auto", 0);
++    /* On Switch, unlimited decoder workers contend with the audio mixer.
++     * Two video workers are enough for the reduced-resolution VP8 files;
++     * audio decoding stays single-threaded. */
++    codec_ctx->thread_count =
++        codec_ctx->codec_type == AVMEDIA_TYPE_VIDEO ? 2 : 1;
+     av_dict_set(&opts, "refcounted_frames", "0", 0);
