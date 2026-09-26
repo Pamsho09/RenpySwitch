@@ -1,5 +1,8 @@
 """Platform setup before importing statically linked Ren'Py packages."""
 import sys
+import os
+import posixpath
+import importlib._bootstrap_external as _external
 from importlib.machinery import BuiltinImporter
 
 
@@ -13,7 +16,31 @@ class SwitchBuiltinFinder:
         return None
 
 
+_original_isabs = posixpath.isabs
+_original_realpath = posixpath.realpath
+_original_import_isabs = _external._path_isabs
+
+
+def _device_absolute(path):
+    path = os.fspath(path)
+    prefixes = (b"sdmc:/", b"romfs:/") if isinstance(path, bytes) else ("sdmc:/", "romfs:/")
+    return path.startswith(prefixes)
+
+
+def _isabs(path):
+    return _device_absolute(path) or _original_isabs(path)
+
+
+def _realpath(path, *args, **kwargs):
+    if _device_absolute(path):
+        return posixpath.normpath(path)
+    return _original_realpath(path, *args, **kwargs)
+
+
 def install():
     sys.platform = "switch"
+    posixpath.isabs = _isabs
+    posixpath.realpath = _realpath
+    _external._path_isabs = lambda path: _device_absolute(path) or _original_import_isabs(path)
     if SwitchBuiltinFinder not in sys.meta_path:
         sys.meta_path.insert(0, SwitchBuiltinFinder)

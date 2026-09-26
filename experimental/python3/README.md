@@ -69,3 +69,18 @@ This confirms Python startup and imports of `_renpy`, `pygame_sdl2` and `renpy`
 on the user's Switch. It does not yet validate SDL display initialization,
 Ren'Py's full module initialization, game execution, controls, saves or media.
 The next integration step is a game bootstrap using the staged Agent17 assets.
+
+## Experimental game launcher
+
+`agent17.nro` attempts the upstream Ren'Py bootstrap with game files at
+`sdmc:/switch/agent17/game`. Engine common resources are embedded in RomFS.
+Saves and logs use the separate `switch/agent17/saves` and `logs` directories.
+`boot-errors.txt` captures Python output; `boot-stage.txt` identifies the last
+startup stage. A failed startup displays a message and waits for A.
+
+The runtime includes ecdsa 0.19.1 and six 1.17.0 for Ren'Py save signatures,
+plus Ren'Py's test package required by import_all. Device-prefixed paths are
+treated as absolute. Desktop editor/TTS/relaunch integrations report ENOSYS
+when asked to spawn a process. The launcher requests the GLES2 renderer.
+This is the first full game startup attempt; gameplay, input, save/load and
+multimedia are not yet validated. Game assets are never included in CI.

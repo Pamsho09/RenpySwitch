@@ -166,7 +166,7 @@ curl -fL --retry 3 \
     -o "$renpy_archive"
 echo 'fd33248d5eea506ff9017c535b5b77e17edf7a77ddaf1bcf542b9cd261ff3fe5  /tmp/python3-switch/renpy-8.3.7-source.tar.bz2' | sha256sum -c -
 tar -xf "$renpy_archive" -C /tmp/python3-switch
-python3.9 -m pip install 'Cython==0.29.36' future setuptools
+python3.9 -m pip install 'Cython==0.29.36' future setuptools 'ecdsa==0.19.1' 'six==1.17.0'
 renpy_source=/tmp/python3-switch/renpy-8.3.7-source
 python3.9 "$project_root/experimental/python3/bundle_runtime.py" \
     "$renpy_source/renpy" "$pygame_source/src/pygame_sdl2" \
@@ -280,3 +280,26 @@ read -r -a switch_libs <<< "$(pkg-config --libs --static \
     --romfsdir=/tmp/python3-switch/romfs
 python3 "$project_root/experimental/python3/verify_nro.py" \
     /tmp/python3-switch/link-probe.nro /tmp/python3-switch/romfs
+
+# Full game attempt, using the same verified native libraries. Common engine
+# resources are bundled; user game assets are loaded separately from SD.
+cp -R "$renpy_source/renpy/common" /tmp/python3-switch/romfs/Contents/common
+"$CC" -O2 -fPIE -D__SWITCH__ \
+    -IInclude -I. -I"$DEVKITPRO/libnx/include" \
+    -I"$DEVKITPRO/portlibs/switch/include/SDL2" \
+    "$project_root/experimental/python3/game_main.c" \
+    /tmp/python3-switch/static_modules.c \
+    -specs="$DEVKITPRO/libnx/switch.specs" \
+    -L"$DEVKITPRO/libnx/lib" -L"$DEVKITPRO/portlibs/switch/lib" \
+    -Wl,--start-group -Wl,--whole-archive \
+    /tmp/python3-switch/librenpy8-modules.a \
+    /tmp/python3-switch/librenpy8-support.a \
+    /tmp/python3-switch/libpygame_sdl2.a \
+    -Wl,--no-whole-archive libpython3.9.a \
+    "${switch_libs[@]}" -lm -lz -lstdc++ -lnx -Wl,--end-group \
+    -o /tmp/python3-switch/agent17.elf
+"$DEVKITPRO/tools/bin/nacptool" --create "Agent17 experimental" "RenpySwitch" "0.1.0" /tmp/python3-switch/agent17.nacp
+"$DEVKITPRO/tools/bin/elf2nro" /tmp/python3-switch/agent17.elf /tmp/python3-switch/agent17.nro \
+    --nacp=/tmp/python3-switch/agent17.nacp --romfsdir=/tmp/python3-switch/romfs
+python3 "$project_root/experimental/python3/verify_nro.py" \
+    /tmp/python3-switch/agent17.nro /tmp/python3-switch/romfs

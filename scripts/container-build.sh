@@ -18,4 +18,7 @@ cp /tmp/python3-switch/static_modules.c /artifacts/
 cp /tmp/python3-switch/link-probe.elf /artifacts/
 cp /tmp/python3-switch/link-probe.nro /artifacts/
 
+cp /tmp/python3-switch/agent17.nro /artifacts/
+cp /tmp/python3-switch/agent17.elf /artifacts/
+
 echo "CPython 3.9 cross-compile probe ready in /artifacts"
