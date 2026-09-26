@@ -9,30 +9,40 @@ int register_renpy8_static_modules(void);
 int main(void)
 {
     romfsInit();
+    FILE *errors = freopen("sdmc:/renpy8-link-probe-errors.txt", "w", stderr);
+    if (errors) {
+        setvbuf(stderr, NULL, _IONBF, 0);
+    }
     char error[256] = {0};
 
     int registered = register_renpy8_static_modules();
     int initialized = 0;
-    int imported = 0;
+    int native_imported = 0;
+    int pygame_imported = 0;
+    int renpy_imported = 0;
 
     if (registered == 0) {
         initialized = switch_python_initialize(
-            L"romfs:/Contents/python39.zip", error, sizeof error);
+            L"romfs:/Contents/python39.zip",
+            L"romfs:/Contents/renpy8.zip", error, sizeof error);
         if (initialized) {
-            imported = PyRun_SimpleString("import _renpy") == 0;
-            if (!imported) {
-                PyErr_Print();
-            }
-            Py_FinalizeEx();
+            native_imported = PyRun_SimpleString("import _renpy") == 0;
+            pygame_imported = PyRun_SimpleString("import pygame_sdl2") == 0;
+            renpy_imported = PyRun_SimpleString("import renpy") == 0;
         }
     }
 
     FILE *result = fopen("sdmc:/renpy8-link-probe.txt", "w");
     if (result) {
-        fprintf(result, "registered=%d initialized=%d imported=%d\nerror: %s\n",
-                registered == 0, initialized, imported, error);
+        fprintf(result,
+                "registered=%d initialized=%d native=%d pygame=%d renpy=%d\nerror: %s\n",
+                registered == 0, initialized, native_imported,
+                pygame_imported, renpy_imported, error);
         fclose(result);
     }
+    if (initialized) {
+        Py_FinalizeEx();
+    }
     romfsExit();
-    return imported ? 0 : 1;
+    return native_imported && pygame_imported && renpy_imported ? 0 : 1;
 }

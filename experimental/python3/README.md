@@ -10,7 +10,14 @@ libhydrogen's entropy initialization uses libnx's `csrng` service on Switch.
 The source archive and pygame_sdl2 archive are downloaded from the official
 Ren'Py 8.3.7 release and SHA-256 checked before compilation.
 
-The smoke NRO still needs a hardware test. The Ren'Py modules need complete
-cross-compilation and linking into a game runtime, followed by testing input,
-saves, audio, and video. A successful static build does not establish that
-Agent17 runs. No Agent17 assets belong in this repository.
+All 66 native modules (23 pygame_sdl2 and 43 Ren'Py) now register and link in
+an ARM64 executable. Switch uses SDL's frame allocation path in ffmedia.
+Python initialization uses PyConfig's path list to preserve the colon in
+RomFS paths. The import probe bundles the pure Python packages as well.
+
+Both NROs still need hardware testing. `smoke.nro` checks Python initialization
+and writes `sdmc:/renpy8-python-smoke.txt`. `link-probe.nro` checks imports of
+`_renpy`, `pygame_sdl2`, and `renpy`, writing `sdmc:/renpy8-link-probe.txt`
+and `sdmc:/renpy8-link-probe-errors.txt`. Neither starts the game. Next comes
+the full engine bootstrap, followed by testing input, saves, audio, and video.
+No Agent17 assets belong in this repository.

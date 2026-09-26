@@ -5,6 +5,7 @@
 #include <stdio.h>
 
 static int switch_python_initialize(const wchar_t *stdlib_zip,
+                                    const wchar_t *runtime_zip,
                                     char *error, size_t error_size)
 {
     PyConfig config;
@@ -15,6 +16,10 @@ static int switch_python_initialize(const wchar_t *stdlib_zip,
 
     PyStatus status = PyWideStringList_Append(&config.module_search_paths,
                                              stdlib_zip);
+    if (!PyStatus_Exception(status) && runtime_zip) {
+        status = PyWideStringList_Append(&config.module_search_paths,
+                                         runtime_zip);
+    }
     if (!PyStatus_Exception(status)) {
         status = Py_InitializeFromConfig(&config);
     }
