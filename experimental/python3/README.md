@@ -1,5 +1,10 @@
 # Ren'Py 8 native bootstrap
 
+Current integration status: [SWITCH_PORT_PROGRESS.md](../../SWITCH_PORT_PROGRESS.md).
+The following sections preserve the chronological development record; earlier
+'next' and 'pending' statements describe the state at that point in time.
+Build from main with RUNTIME=renpy8 (the default).
+
 This branch builds dependencies for a native Ren'Py 8.3.7 runtime. The
 existing Ren'Py 7.6.3 runtime uses Python 2.7 and cannot load Python 3 game
 scripts. The CI build now produces a Python 3.9 static library, a small

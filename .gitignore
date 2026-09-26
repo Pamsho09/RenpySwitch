@@ -14,3 +14,9 @@
 *.keys
 *.nsp
 *.nca
+
+artifacts-renpy7/
+artifacts-renpy8/
+*.rpa
+*.rpyc
+*.save

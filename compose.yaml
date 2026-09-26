@@ -4,6 +4,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    environment:
+      RUNTIME: ${RUNTIME:-renpy8}
     volumes:
       - type: bind
         source: ${OUTPUT_DIR:-./artifacts}
