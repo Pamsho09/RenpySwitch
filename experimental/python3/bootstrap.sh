@@ -264,6 +264,8 @@ read -r -a switch_libs <<< "$(pkg-config --libs --static \
     -IInclude -I. -I"$DEVKITPRO/libnx/include" \
     "$project_root/experimental/python3/link_probe.c" \
     /tmp/python3-switch/static_modules.c \
+    "$project_root/experimental/python3/eh_tls_guard.c" \
+    -Wl,--wrap=pthread_key_create \
     -specs="$DEVKITPRO/libnx/switch.specs" \
     -L"$DEVKITPRO/libnx/lib" -L"$DEVKITPRO/portlibs/switch/lib" \
     -Wl,--start-group -Wl,--whole-archive \
@@ -289,6 +291,8 @@ cp -R "$renpy_source/renpy/common" /tmp/python3-switch/romfs/Contents/common
     -I"$DEVKITPRO/portlibs/switch/include/SDL2" \
     "$project_root/experimental/python3/game_main.c" \
     /tmp/python3-switch/static_modules.c \
+    "$project_root/experimental/python3/eh_tls_guard.c" \
+    -Wl,--wrap=pthread_key_create \
     -specs="$DEVKITPRO/libnx/switch.specs" \
     -L"$DEVKITPRO/libnx/lib" -L"$DEVKITPRO/portlibs/switch/lib" \
     -Wl,--start-group -Wl,--whole-archive \

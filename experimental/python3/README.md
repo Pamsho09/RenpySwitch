@@ -120,3 +120,17 @@ for all scripts. Common sources are copied once to the versioned SD directory
 instead of attempting writes to read-only RomFS. Local tests cover process
 import/failure behavior and common-resource copying/cache reuse. Hardware
 validation of this update is pending.
+
+### Native thread-exit crash after script initialization
+
+Hardware run of a7a3162 passed common-script initialization and ATL compilation,
+then closed without a new Python traceback. Atmosphere report
+01790452773_0197bb45716e0000.log identifies a Data Abort in
+`eh_globals_dtor+0x14` (ELF offset 0x116afd4), called from threadExit.
+The destructor argument is the invalid address fffffff9bf067db3.
+The native builds now wrap pthread_key_create to guard this specific C++
+exception-state destructor at invocation. This reuses the experimental guard
+from the RenPy 7 branch. It skips unmapped/unreadable values and preserves
+normal destructor calls; it does not explain or repair the underlying TLS
+corruption. The pinned libstdc++ callback offset must be verified in the ELF
+before deployment. Hardware validation remains pending.
