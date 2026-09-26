@@ -103,3 +103,11 @@ adapter as the desktop integrations. DBI MTP access from the development Mac
 successfully retrieved the boot logs over USB. Python-only packaging fixes can
 reuse the previously built ELF with elf2nro; embedded files are verified again
 before transfer, and USB transfers are downloaded back for SHA-256 comparison.
+
+The USB retest passed post_import and reached game script initialization.
+The next error, `_errorhandling could not be loaded`, came from posixpath.join
+combining a device-prefixed absolute search path with the game base. The
+Switch path adapter now resets joins at sdmc:/ and romfs:/ roots, preserving
+relative paths, normal POSIX absolute paths, PathLike inputs and str/bytes
+validation. A host regression check reproduces the loader join failure and
+verifies the corrected common and game paths. Hardware retest is pending.

@@ -16,6 +16,7 @@ class SwitchBuiltinFinder:
         return None
 
 
+_original_join = posixpath.join
 _original_isabs = posixpath.isabs
 _original_realpath = posixpath.realpath
 _original_import_isabs = _external._path_isabs
@@ -31,6 +32,16 @@ def _isabs(path):
     return _device_absolute(path) or _original_isabs(path)
 
 
+def _join(path, *paths):
+    parts = tuple(os.fspath(part) for part in (path,) + paths)
+    # Keep the standard type checks, including mixed str/bytes rejection.
+    result = _original_join(*parts)
+    for index in range(len(parts) - 1, -1, -1):
+        if _device_absolute(parts[index]):
+            return _original_join(*parts[index:])
+    return result
+
+
 def _realpath(path, *args, **kwargs):
     if _device_absolute(path):
         return posixpath.normpath(path)
@@ -39,6 +50,7 @@ def _realpath(path, *args, **kwargs):
 
 def install():
     sys.platform = "switch"
+    posixpath.join = _join
     posixpath.isabs = _isabs
     posixpath.realpath = _realpath
     _external._path_isabs = lambda path: _device_absolute(path) or _original_import_isabs(path)
