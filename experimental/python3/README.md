@@ -96,3 +96,10 @@ Ren'Py Backup class confirms callback serialization works even when included
 in a module with the renpy prefix. The native stdlib also gains BLAKE2 and
 SHA-3/SHAKE, missing from the first game's hashlib import. Hardware retest
 is still required; this failure happened before game script initialization.
+
+The following hardware run passed Backup and stopped in post_import's legacy
+renpy.subprocess alias. That alias now uses the same explicit unsupported-process
+adapter as the desktop integrations. DBI MTP access from the development Mac
+successfully retrieved the boot logs over USB. Python-only packaging fixes can
+reuse the previously built ELF with elf2nro; embedded files are verified again
+before transfer, and USB transfers are downloaded back for SHA-256 comparison.

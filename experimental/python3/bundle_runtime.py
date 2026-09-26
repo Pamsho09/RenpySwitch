@@ -16,6 +16,13 @@ def add_python_tree(archive, root, package):
                 raise ValueError("Unexpected subprocess import: " + str(name))
             source = source.replace("\nimport subprocess\n", "\nimport switch_process as subprocess\n")
             archive.writestr(name.as_posix(), source)
+        elif name.as_posix() == "renpy/__init__.py":
+            source = path.read_text()
+            needle = "    import subprocess\n    sys.modules[pystr('renpy.subprocess')] = subprocess"
+            if source.count(needle) != 1:
+                raise ValueError("Unexpected post_import subprocess alias")
+            source = source.replace(needle, needle.replace("import subprocess", "import switch_process as subprocess"))
+            archive.writestr(name.as_posix(), source)
         else:
             archive.write(path, name.as_posix())
         count += 1
