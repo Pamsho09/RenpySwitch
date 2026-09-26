@@ -45,3 +45,12 @@ code size and no ASET section existed. elf2nro exits before writing assets when
 only --romfsdir is set (its guard checks icon, NACP and --romfs). Both probes
 now include NACP metadata. verify_nro.py fails the build unless the embedded
 RomFS files exactly match their inputs by SHA-256. Hardware retest is pending.
+
+Build 36262913082 passed Python initialization and all stdlib checks on Switch.
+Engine imports then exposed two issues: Python 3.9's BuiltinImporter rejects
+package paths for dotted static modules, and platform eagerly imports
+subprocess even when only querying platform metadata. The runtime bootstrap
+now recognizes registered renpy/pygame_sdl2 submodules and identifies Switch
+explicitly. The platform module loads subprocess only when needed and returns
+aarch64 directly for Switch processor queries. Process spawning remains
+unsupported. Engine import success still needs a new hardware test.

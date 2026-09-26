@@ -91,6 +91,7 @@ PY
 # Building the archive alone never runs setup.py's extension build.
 cp "$project_root/experimental/python3/Setup.local" Modules/Setup.local
 python3 "$project_root/experimental/python3/patch_python_entropy.py" .
+python3 "$project_root/experimental/python3/patch_python_platform.py" .
 make -j2 libpython3.9.a
 
 # Link a small NSO-shaped program before attempting the full engine. This

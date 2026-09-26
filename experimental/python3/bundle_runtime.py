@@ -28,6 +28,8 @@ def main():
     args.output.parent.mkdir(parents=True, exist_ok=True)
     count = 0
     with ZipFile(args.output, "w", ZIP_DEFLATED) as archive:
+        archive.write(Path(__file__).with_name("switch_bootstrap.py"), "switch_bootstrap.py")
+        count += 1
         count += add_python_tree(archive, args.renpy_package, Path("renpy"))
         count += add_python_tree(archive, args.pygame_package, Path("pygame_sdl2"))
         for package in ("future", "past"):

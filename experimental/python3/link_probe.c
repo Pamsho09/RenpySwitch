@@ -29,7 +29,7 @@ int main(void)
         initialized = switch_python_initialize(
             L"romfs:/Contents/python39.zip",
             L"romfs:/Contents/renpy8.zip", error, sizeof error);
-        if (initialized) {
+        if (initialized && PyRun_SimpleString("import switch_bootstrap; switch_bootstrap.install()") == 0) {
             native_imported = PyRun_SimpleString("import _renpy") == 0;
             pygame_imported = PyRun_SimpleString("import pygame_sdl2") == 0;
             renpy_imported = PyRun_SimpleString("import renpy") == 0;
