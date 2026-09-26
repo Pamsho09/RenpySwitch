@@ -2,10 +2,16 @@
 #include <switch.h>
 #include <stdio.h>
 #include "init_python.h"
+#include "probe_io.h"
 
 int main(void)
 {
-    romfsInit();
+    if (freopen("sdmc:/renpy8-python-smoke-errors.txt", "w", stderr)) {
+        setvbuf(stderr, NULL, _IONBF, 0);
+    }
+    Result romfs_result = romfsInit();
+    fprintf(stderr, "romfsInit: 0x%08x\n", (unsigned int)romfs_result);
+    probe_file("romfs:/Contents/python39.zip");
     char error[256] = {0};
     int initialized = switch_python_initialize(
         L"romfs:/Contents/python39.zip", NULL, error, sizeof error);
@@ -23,9 +29,11 @@ int main(void)
     FILE *result = fopen("sdmc:/renpy8-python-smoke.txt", "w");
     if (result) {
         fprintf(result, "CPython 3.9 initialized: %s\nerror: %s\n",
-                ok ? "yes" : "no", error);
+                initialized ? "yes" : "no", error);
+        fprintf(result, "stdlib checks: %s\n", ok ? "PASS" : "FAIL");
         fclose(result);
     }
+    probe_show_result("Python 3", ok, error);
     if (initialized) {
         Py_FinalizeEx();
     }

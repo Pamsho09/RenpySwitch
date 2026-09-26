@@ -3,16 +3,20 @@
 #include <switch.h>
 #include <stdio.h>
 #include "init_python.h"
+#include "probe_io.h"
 
 int register_renpy8_static_modules(void);
 
 int main(void)
 {
-    romfsInit();
     FILE *errors = freopen("sdmc:/renpy8-link-probe-errors.txt", "w", stderr);
     if (errors) {
         setvbuf(stderr, NULL, _IONBF, 0);
     }
+    Result romfs_result = romfsInit();
+    fprintf(stderr, "romfsInit: 0x%08x\n", (unsigned int)romfs_result);
+    probe_file("romfs:/Contents/python39.zip");
+    probe_file("romfs:/Contents/renpy8.zip");
     char error[256] = {0};
 
     int registered = register_renpy8_static_modules();
@@ -40,6 +44,8 @@ int main(void)
                 pygame_imported, renpy_imported, error);
         fclose(result);
     }
+    probe_show_result("RenPy imports",
+                      native_imported && pygame_imported && renpy_imported, error);
     if (initialized) {
         Py_FinalizeEx();
     }

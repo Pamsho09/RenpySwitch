@@ -29,3 +29,13 @@ service failures propagate instead of falling back to /dev/urandom.
 The smoke probe exercises compression, serialization, math, and randomness.
 Earlier smoke NROs without these changes are obsolete. These changes still
 require cross-compilation and a hardware run before startup is confirmed.
+
+## Hardware result: 2026-09-26
+
+Build 36261097610 failed on hardware before codec initialization:
+`failed to get the Python codec of the filesystem encoding`.
+Registration succeeded, but none of the engine imports ran. The probes now
+record RomFS mount status, ZIP stat/open/seek, verbose imports and the original
+Python exception. Both show PASS/FAIL and wait for A before returning to hbmenu.
+Smoke also writes `sdmc:/renpy8-python-smoke-errors.txt`. This is diagnostic
+instrumentation; the underlying codec startup failure is not yet resolved.
