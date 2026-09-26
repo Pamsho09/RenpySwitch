@@ -15,7 +15,7 @@ an ARM64 executable. Switch uses SDL's frame allocation path in ffmedia.
 Python initialization uses PyConfig's path list to preserve the colon in
 RomFS paths. The import probe bundles the pure Python packages as well.
 
-Both NROs still need hardware testing. `smoke.nro` checks Python initialization
+Both NROs have passed their basic hardware checks (see results below). `smoke.nro` checks Python initialization
 and writes `sdmc:/renpy8-python-smoke.txt`. `link-probe.nro` checks imports of
 `_renpy`, `pygame_sdl2`, and `renpy`, writing `sdmc:/renpy8-link-probe.txt`
 and `sdmc:/renpy8-link-probe-errors.txt`. Neither starts the game. Next comes
@@ -27,8 +27,7 @@ in `Setup.local`, including zlib (required to open compressed RomFS ZIPs).
 CPython entropy uses libnx csrng for both hash initialization and os.urandom;
 service failures propagate instead of falling back to /dev/urandom.
 The smoke probe exercises compression, serialization, math, and randomness.
-Earlier smoke NROs without these changes are obsolete. These changes still
-require cross-compilation and a hardware run before startup is confirmed.
+Earlier smoke NROs without these changes are obsolete.
 
 ## Hardware result: 2026-09-26
 
@@ -38,13 +37,13 @@ Registration succeeded, but none of the engine imports ran. The probes now
 record RomFS mount status, ZIP stat/open/seek, verbose imports and the original
 Python exception. Both show PASS/FAIL and wait for A before returning to hbmenu.
 Smoke also writes `sdmc:/renpy8-python-smoke-errors.txt`. This is diagnostic
-instrumentation; the underlying codec startup failure is not yet resolved.
+instrumentation used to diagnose the codec startup failure.
 
 Root cause found by inspecting the installed NRO: its file size equaled the
 code size and no ASET section existed. elf2nro exits before writing assets when
 only --romfsdir is set (its guard checks icon, NACP and --romfs). Both probes
 now include NACP metadata. verify_nro.py fails the build unless the embedded
-RomFS files exactly match their inputs by SHA-256. Hardware retest is pending.
+RomFS files exactly match their inputs by SHA-256.
 
 Build 36262913082 passed Python initialization and all stdlib checks on Switch.
 Engine imports then exposed two issues: Python 3.9's BuiltinImporter rejects
@@ -53,4 +52,20 @@ subprocess even when only querying platform metadata. The runtime bootstrap
 now recognizes registered renpy/pygame_sdl2 submodules and identifies Switch
 explicitly. The platform module loads subprocess only when needed and returns
 aarch64 directly for Switch processor queries. Process spawning remains
-unsupported. Engine import success still needs a new hardware test.
+unsupported.
+
+## Confirmed hardware checkpoint
+
+On 2026-09-26, build **36263659522**, commit **e73db99**, returned:
+
+```text
+registered=1 initialized=1 native=1 pygame=1 renpy=1
+error:
+```
+
+The Python smoke probe also reported initialization success and
+`stdlib checks: PASS`. The engine import log contained no traceback.
+This confirms Python startup and imports of `_renpy`, `pygame_sdl2` and `renpy`
+on the user's Switch. It does not yet validate SDL display initialization,
+Ren'Py's full module initialization, game execution, controls, saves or media.
+The next integration step is a game bootstrap using the staged Agent17 assets.
