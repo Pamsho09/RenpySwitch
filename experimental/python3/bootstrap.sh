@@ -119,9 +119,15 @@ PY
 
 mkdir -p /tmp/python3-switch/romfs/Contents
 cp /tmp/python3-switch/python39.zip /tmp/python3-switch/romfs/Contents/
+# elf2nro can omit assets when only --romfsdir is supplied. Supplying
+# NACP also gives the probes clear names in hbmenu.
+"$DEVKITPRO/tools/bin/nacptool" --create "Agent17 Python check" "RenpySwitch" "0.1.0" /tmp/python3-switch/smoke.nacp
 "$DEVKITPRO/tools/bin/elf2nro" \
     /tmp/python3-switch/smoke.elf /tmp/python3-switch/smoke.nro \
+    --nacp=/tmp/python3-switch/smoke.nacp \
     --romfsdir=/tmp/python3-switch/romfs
+python3 "$project_root/experimental/python3/verify_nro.py" \
+    /tmp/python3-switch/smoke.nro /tmp/python3-switch/romfs
 
 # Probe one generated pygame_sdl2 extension against the Python 3 headers and
 # the existing Switch SDL2 portlibs before porting the complete module set.
@@ -266,6 +272,10 @@ read -r -a switch_libs <<< "$(pkg-config --libs --static \
     -Wl,--no-whole-archive libpython3.9.a \
     "${switch_libs[@]}" -lm -lz -lstdc++ -lnx -Wl,--end-group \
     -o /tmp/python3-switch/link-probe.elf
+"$DEVKITPRO/tools/bin/nacptool" --create "Agent17 RenPy check" "RenpySwitch" "0.1.0" /tmp/python3-switch/link-probe.nacp
 "$DEVKITPRO/tools/bin/elf2nro" \
     /tmp/python3-switch/link-probe.elf /tmp/python3-switch/link-probe.nro \
+    --nacp=/tmp/python3-switch/link-probe.nacp \
     --romfsdir=/tmp/python3-switch/romfs
+python3 "$project_root/experimental/python3/verify_nro.py" \
+    /tmp/python3-switch/link-probe.nro /tmp/python3-switch/romfs

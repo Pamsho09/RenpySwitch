@@ -39,3 +39,9 @@ record RomFS mount status, ZIP stat/open/seek, verbose imports and the original
 Python exception. Both show PASS/FAIL and wait for A before returning to hbmenu.
 Smoke also writes `sdmc:/renpy8-python-smoke-errors.txt`. This is diagnostic
 instrumentation; the underlying codec startup failure is not yet resolved.
+
+Root cause found by inspecting the installed NRO: its file size equaled the
+code size and no ASET section existed. elf2nro exits before writing assets when
+only --romfsdir is set (its guard checks icon, NACP and --romfs). Both probes
+now include NACP metadata. verify_nro.py fails the build unless the embedded
+RomFS files exactly match their inputs by SHA-256. Hardware retest is pending.
