@@ -2,6 +2,8 @@
 _previous_map = None
 _held = set()
 _triggers = set()
+_original_post_event = None
+_input_log_count = 0
 
 
 def map_pad_event(name):
@@ -32,7 +34,7 @@ def map_pad_event(name):
 
 
 def apply():
-    global _previous_map
+    global _previous_map, _original_post_event
     import renpy
     preferences = renpy.game.preferences
     preferences.physical_size = (1280, 720)
@@ -44,6 +46,25 @@ def apply():
     if renpy.config.map_pad_event is not map_pad_event:
         _previous_map = renpy.config.map_pad_event
         renpy.config.map_pad_event = map_pad_event
+    if renpy.display.controller.post_event is not post_event:
+        _original_post_event = renpy.display.controller.post_event
+        renpy.display.controller.post_event = post_event
     _held.clear()
     _triggers.clear()
     renpy.exports.write_log('Switch Lite profile: 1280x720, 30 FPS target; ZL/ZR hold to skip; optional URM L+R+X')
+
+
+def post_event(control, state, repeat):
+    """Console pad events do not require desktop keyboard window focus."""
+    global _input_log_count
+    import renpy
+    interface = renpy.display.interface
+    focused = interface.keyboard_focused
+    if not repeat and _input_log_count < 32:
+        renpy.exports.write_log('Switch input: %s %s keyboard_focus=%s' % (control, state, focused))
+        _input_log_count += 1
+    interface.keyboard_focused = True
+    try:
+        return _original_post_event(control, state, repeat)
+    finally:
+        interface.keyboard_focused = focused

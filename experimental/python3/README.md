@@ -146,3 +146,21 @@ exists. The mod must already be installed; no cheat archive is bundled.
 Host checks cover both triggers, release order, normal mappings, absent/present
 URM and repeated profile setup. Hardware performance/input validation pending.
 This does not optimize video assets or guarantee sustained 30 FPS.
+
+### Confirming name: native PNG callback crash and missing pad input
+
+Hardware at 720p/30 FPS target was confirmed by the renderer log. User reports
+only touch input and a crash after confirming a name. Atmosphere report
+01790454825_0197bb45716e0000.log resolves to take_gil -> PyGILState_Ensure
+from pygame_sdl2.rwobject.python_write during PNG encoding on a Python thread.
+CPython's recovered thread-state pointer is invalid. CPython TSS now uses a
+mutex-protected map keyed by TSS key address and pthread identity, independent
+of pthread TLS slots. NULL assignments and key deletion free entries. Host
+stress test: eight threads, 10,000 set/get iterations each, independent keys,
+repeated creation, deletion and recreation. This isolates CPython; underlying
+shared TLS corruption in other libraries is still not explained.
+
+For input, SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS is set before SDL starts and
+controller event posting no longer requires desktop keyboard focus. Up to 32
+non-repeat controller events are logged for hardware diagnosis. This is a
+candidate fix; the previous logs prove controller detection, not event delivery.

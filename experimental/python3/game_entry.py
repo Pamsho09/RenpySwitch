@@ -81,6 +81,7 @@ def run():
     os.makedirs(BASE + "/logs", exist_ok=True)
     os.makedirs(BASE + "/saves", exist_ok=True)
     os.chdir(BASE)
+    os.environ["SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS"] = "1"
     os.environ["RENPY_RENDERER"] = "gles2"
     os.environ["RENPY_PLATFORM"] = "switch-aarch64"
     os.environ["RENPY_LOG_TO"] = BASE + "/logs"
