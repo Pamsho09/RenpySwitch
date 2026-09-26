@@ -50,6 +50,8 @@ def _realpath(path, *args, **kwargs):
 
 def install():
     sys.platform = "switch"
+    import switch_process
+    sys.modules["subprocess"] = switch_process
     posixpath.join = _join
     posixpath.isabs = _isabs
     posixpath.realpath = _realpath

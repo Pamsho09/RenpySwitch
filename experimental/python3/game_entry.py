@@ -2,15 +2,33 @@
 import sys
 import os
 import traceback
+import shutil
 import switch_bootstrap
 
 BASE = "sdmc:/switch/agent17"
+COMMON = BASE + "/engine-common-8.3.7"
 
 
 def stage(message):
     print(message, file=sys.stderr, flush=True)
     with open(BASE + "/boot-stage.txt", "w") as out:
         out.write(message + "\n")
+
+
+def prepare_common(source="romfs:/Contents/common", destination=COMMON):
+    marker = os.path.join(destination, ".ready")
+    if os.path.isfile(marker) and os.path.isfile(os.path.join(destination, "_errorhandling.rpym")):
+        return
+    stage("Preparing engine script cache on SD")
+    for directory, _, files in os.walk(source):
+        target = os.path.join(destination, os.path.relpath(directory, source))
+        os.makedirs(target, exist_ok=True)
+        for filename in files:
+            shutil.copyfile(os.path.join(directory, filename), os.path.join(target, filename))
+    if not os.path.isfile(os.path.join(destination, "_errorhandling.rpym")):
+        raise RuntimeError("Engine common resources could not be copied to SD")
+    with open(marker, "w") as out:
+        out.write("RenPy 8.3.7 common resources\n")
 
 
 def path_to_renpy_base():
@@ -22,7 +40,7 @@ def path_to_gamedir(basedir, name):
 
 
 def path_to_common(basedir):
-    return "romfs:/Contents/common"
+    return COMMON
 
 
 def path_to_saves(gamedir, save_directory=None):
@@ -66,6 +84,7 @@ def run():
     stage("Checking game files")
     if not os.path.isfile(BASE + "/game/archive.rpa"):
         raise FileNotFoundError(BASE + "/game/archive.rpa")
+    prepare_common()
     import switch_launcher as launcher
     launcher.path_to_renpy_base = path_to_renpy_base
     launcher.path_to_gamedir = path_to_gamedir

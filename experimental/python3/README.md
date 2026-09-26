@@ -111,3 +111,12 @@ Switch path adapter now resets joins at sdmc:/ and romfs:/ roots, preserving
 relative paths, normal POSIX absolute paths, PathLike inputs and str/bytes
 validation. A host regression check reproduces the loader join failure and
 verifies the corrected common and game paths. Hardware retest is pending.
+
+The next hardware run rendered Ren'Py's exception UI and reached common-script
+initialization. 00updater.rpy imports subprocess directly, so the Switch
+bootstrap now installs the explicit ENOSYS adapter under the subprocess name
+for all scripts. Common sources are copied once to the versioned SD directory
+`engine-common-8.3.7`, allowing Ren'Py to write and reuse compiled script caches
+instead of attempting writes to read-only RomFS. Local tests cover process
+import/failure behavior and common-resource copying/cache reuse. Hardware
+validation of this update is pending.
