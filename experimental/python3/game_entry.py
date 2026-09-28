@@ -47,6 +47,12 @@ def path_to_saves(gamedir, save_directory=None):
     return BASE + "/saves"
 
 
+def path_to_extension_saves(gamedir, save_directory=None):
+    if save_directory == "0x52-URM":
+        return BASE + "/saves/0x52-URM"
+    return path_to_saves(gamedir, save_directory)
+
+
 def path_to_logdir(basedir):
     return BASE + "/logs"
 
@@ -90,6 +96,8 @@ def run():
     if not os.path.isfile(BASE + "/game/archive.rpa"):
         raise FileNotFoundError(BASE + "/game/archive.rpa")
     prepare_common()
+    import __main__
+    __main__.path_to_saves = path_to_extension_saves
     import switch_launcher as launcher
     launcher.path_to_renpy_base = path_to_renpy_base
     launcher.path_to_gamedir = path_to_gamedir

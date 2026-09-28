@@ -145,3 +145,11 @@ SHA-256, junto con NRO reempaquetado 4c4e428 sobre ELF CI 36462981873.
 Se conservaron las correcciones SDL/TSS, salida normal y vídeos reducidos.
 Se respaldó el NRO anterior. No se publicaron archivos del mod ni del juego.
 Pendiente comprobar arranque y apertura del menú L+R+X en la Switch.
+
+
+IMG_8889 confirma que URM se carga, pero falla en SettingsClass al buscar
+__main__.path_to_saves. El bootstrap nativo importaba switch_launcher como
+módulo; ahora expone ese callback antes del init. URM usa saves/0x52-URM para
+sus ajustes, y el callback de guardados del juego conserva saves/. Se comprobó
+el contrato con la clase de configuración inspeccionada y pruebas de rutas y
+serialización del callback. Pendiente instalar y repetir el arranque en Switch.
