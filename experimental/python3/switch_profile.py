@@ -6,6 +6,8 @@ _original_post_event = None
 _input_log_count = 0
 _video_sizes = {}
 _original_movie_render = None
+_original_image_load = None
+_slow_image_count = 0
 
 
 def map_pad_event(name):
@@ -39,7 +41,7 @@ def map_pad_event(name):
 
 
 def apply():
-    global _previous_map, _original_post_event, _original_movie_render
+    global _previous_map, _original_post_event, _original_movie_render, _original_image_load
     import renpy
     preferences = renpy.game.preferences
     preferences.physical_size = (1280, 720)
@@ -58,6 +60,12 @@ def apply():
     if renpy.display.video.Movie.render is not movie_render:
         _original_movie_render = renpy.display.video.Movie.render
         renpy.display.video.Movie.render = movie_render
+    if renpy.display.im.Image.load is not image_load:
+        _original_image_load = renpy.display.im.Image.load
+        renpy.display.im.Image.load = image_load
+    for channel in renpy.audio.audio.all_channels:
+        if channel.movie == renpy.audio.renpysound.NODROP_VIDEO:
+            channel.movie = renpy.audio.renpysound.DROP_VIDEO
     _held.clear()
     _triggers.clear()
     renpy.exports.write_log('Switch Lite profile: 1280x720, 30 FPS target; ZL/ZR hold to skip; optional URM L+R+X')
@@ -100,13 +108,41 @@ def load_video_sizes(gamedir):
 
 def movie_render(movie, width, height, st, at):
     # Only converted assets with metadata change; explicit game sizes win.
-    if movie.size is None and isinstance(movie.play, str):
-        size = _video_sizes.get(movie.play)
-        if size is not None:
-            movie.size = (size[0] // 2, size[1]) if movie.side_mask else size
+    if movie.size is None:
+        play = getattr(movie, '_original_play', None) or getattr(movie, '_play', None)
+        names = [play] if isinstance(play, str) else play if isinstance(play, (list, tuple)) else []
+        for name in names:
+            if not isinstance(name, str):
+                continue
+            import re
+            filename = re.sub(r'^(?:<[^>]*>)+', '', name)
+            size = _video_sizes.get(filename)
+            if size is not None:
+                movie.size = (size[0] // 2, size[1]) if movie.side_mask else size
+                break
     return _original_movie_render(movie, width, height, st, at)
 
 
 def skip_urm_update(*args, **kwargs):
     """The optional mod's desktop updater is unavailable on this console."""
     return None
+
+
+def image_load(image, *args, **kwargs):
+    """Measure a bounded sample of slow loads without tracing every statement."""
+    global _slow_image_count
+    if _slow_image_count >= 64:
+        return _original_image_load(image, *args, **kwargs)
+    import time
+    started = time.perf_counter()
+    try:
+        return _original_image_load(image, *args, **kwargs)
+    finally:
+        elapsed = time.perf_counter() - started
+        if elapsed >= 0.15 and _slow_image_count < 64:
+            _slow_image_count += 1
+            import renpy
+            try:
+                renpy.exports.write_log('Switch slow image: %.3fs %s' % (elapsed, image.filename))
+            except Exception:
+                pass

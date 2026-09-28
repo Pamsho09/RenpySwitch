@@ -157,3 +157,14 @@ serialización del callback. Pendiente instalar y repetir el arranque en Switch.
 Corrección 74624a9 instalada en SD y verificada por SHA-256, con respaldo del
 NRO anterior. Se comprobó presencia de URM y hook init998. La prueba del
 callback y los 279 archivos RomFS pasó; falta comprobar arranque/menú en Switch.
+
+Corrección de vídeos pequeños: el primer wrapper consultaba Movie.play,
+que en RenPy8 es un método. Por eso nunca encontraba los metadatos del archivo.
+Ahora consulta _original_play/_play (incluye listas y prefijos de reproducción)
+y conserva tamaños explícitos y máscaras laterales. Prueba de regresión usa
+la definición real de la clase Movie upstream, no un objeto con un atributo
+play inventado. Se habilita DROP_VIDEO en los canales de vídeo existentes para
+mantener la línea temporal cuando se atrasan cuadros. Se registra una muestra
+máxima de 64 cargas de imágenes de al menos 150ms para diagnosticar escenas
+lentas; no se afirma todavía una mejora en esos cambios de escena.
+Pendiente instalar NRO y recoger una nueva prueba en Switch.
