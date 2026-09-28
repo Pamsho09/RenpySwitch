@@ -74,3 +74,16 @@ privados no se incluyen aquí. [Detalles históricos](docs/RENPY7_HISTORY.md).
 3. Guardar/cargar una partida manual y comprobar la miniatura.
 4. Probar música, transiciones y vídeo, anotando la escena y el comportamiento.
 5. Volver a DBI/MTP y leer logs y crash report antes de modificar otra cosa.
+
+## Prueba SD del 28 de septiembre
+
+Se comprobó el NRO instalado por SHA-256: era 631845b, no una versión antigua.
+El registro confirma 720p/30 FPS objetivo, pero sin pulsaciones registradas.
+Informe 01790615702_0197bb45716e0000.log: ahora el cierre está en
+SDL_RunThread+0x40 al limpiar TLS de un decode_thread de vídeo. No es el mismo
+fallo anterior en take_gil. Se incorpora el wrapper de TLS genérico SDL a
+los enlaces del motor 8; antes solo estaba en la compilación del motor 7.
+También se habilitan explícitamente eventos de joystick/controller al abrir
+el mando y se registran hasta 32 eventos de botón en SDL, antes de Python.
+La corrección y el diagnóstico requieren nueva compilación y prueba de hardware.
+La causa general de corrupción TLS sigue sin establecerse.

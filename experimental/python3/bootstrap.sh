@@ -266,6 +266,10 @@ read -r -a switch_libs <<< "$(pkg-config --libs --static \
     "$project_root/experimental/python3/link_probe.c" \
     /tmp/python3-switch/static_modules.c \
     "$project_root/experimental/python3/eh_tls_guard.c" \
+    "$project_root/experimental/python3/controller_events.c" \
+    -Wl,--wrap=SDL_GameControllerOpen \
+    "$project_root/switch/source/sdl_tls.c" \
+    -Wl,--wrap=SDL_SYS_GetTLSData -Wl,--wrap=SDL_SYS_SetTLSData \
     -Wl,--wrap=pthread_key_create \
     -specs="$DEVKITPRO/libnx/switch.specs" \
     -L"$DEVKITPRO/libnx/lib" -L"$DEVKITPRO/portlibs/switch/lib" \
@@ -293,6 +297,10 @@ cp -R "$renpy_source/renpy/common" /tmp/python3-switch/romfs/Contents/common
     "$project_root/experimental/python3/game_main.c" \
     /tmp/python3-switch/static_modules.c \
     "$project_root/experimental/python3/eh_tls_guard.c" \
+    "$project_root/experimental/python3/controller_events.c" \
+    -Wl,--wrap=SDL_GameControllerOpen \
+    "$project_root/switch/source/sdl_tls.c" \
+    -Wl,--wrap=SDL_SYS_GetTLSData -Wl,--wrap=SDL_SYS_SetTLSData \
     -Wl,--wrap=pthread_key_create \
     -specs="$DEVKITPRO/libnx/switch.specs" \
     -L"$DEVKITPRO/libnx/lib" -L"$DEVKITPRO/portlibs/switch/lib" \
