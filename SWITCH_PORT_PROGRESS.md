@@ -133,3 +133,9 @@ Esto explica una posible pantalla oscura al probar el atajo; no demuestra
 que todas las pantallas negras reportadas tengan esa causa. Pendiente instalar
 este cambio y comprobarlo. El archivo del mod disponible en el proyecto local
 no se copia automáticamente ni se publica en el repositorio.
+
+El propietario solicitó instalar el URM que ya tiene. Se prepara su archivo
+local (versión 2.6.2 según scripts inspeccionados), sin incluirlo en Git.
+Compatibilidad RenPy8: hook init 998 desactiva solo el chequeo automático de
+actualizaciones, y el NRO incluye skip_urm_update y el atajo corregido.
+Instalación y arranque con el mod requieren verificación y prueba de consola.

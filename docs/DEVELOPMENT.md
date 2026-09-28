@@ -126,3 +126,14 @@ Comprobar el resultado visual en Switch antes de considerar validada esta
 optimización. La reducción implica menor detalle y no demuestra por sí sola
 que se hayan resuelto los cambios lentos de escenas con imágenes o la pantalla
 negra: para eso se necesitan los registros del arranque correspondiente.
+
+## Mod opcional URM en el motor 8
+
+Cuando el propietario lo solicite, copiar su `0x52_URM.rpa` a `game/`, junto
+con `experimental/python3/switch_urm_compat.rpy`. Este hook ejecuta init 998,
+antes del chequeo automático de actualizaciones del mod (init 999), y usa
+una función del perfil del motor para evitar esa comprobación de red.
+Requiere un NRO actualizado que contenga `skip_urm_update`. No es parte del
+mod ni reemplaza su archivo. Mantener L+R y pulsar X abre Alt+M cuando
+x52URM.Open existe; sin el mod se avisa y no se oculta la interfaz.
+El archivo del mod se entrega por separado y su menú necesita prueba en Switch.

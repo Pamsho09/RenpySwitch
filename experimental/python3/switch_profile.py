@@ -105,3 +105,8 @@ def movie_render(movie, width, height, st, at):
         if size is not None:
             movie.size = (size[0] // 2, size[1]) if movie.side_mask else size
     return _original_movie_render(movie, width, height, st, at)
+
+
+def skip_urm_update(*args, **kwargs):
+    """The optional mod's desktop updater is unavailable on this console."""
+    return None
