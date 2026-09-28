@@ -139,3 +139,9 @@ local (versión 2.6.2 según scripts inspeccionados), sin incluirlo en Git.
 Compatibilidad RenPy8: hook init 998 desactiva solo el chequeo automático de
 actualizaciones, y el NRO incluye skip_urm_update y el atajo corregido.
 Instalación y arranque con el mod requieren verificación y prueba de consola.
+
+Instalación SD completada: URM RPA y hook de compatibilidad verificados por
+SHA-256, junto con NRO reempaquetado 4c4e428 sobre ELF CI 36462981873.
+Se conservaron las correcciones SDL/TSS, salida normal y vídeos reducidos.
+Se respaldó el NRO anterior. No se publicaron archivos del mod ni del juego.
+Pendiente comprobar arranque y apertura del menú L+R+X en la Switch.
