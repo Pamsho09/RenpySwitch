@@ -87,3 +87,9 @@ También se habilitan explícitamente eventos de joystick/controller al abrir
 el mando y se registran hasta 32 eventos de botón en SDL, antes de Python.
 La corrección y el diagnóstico requieren nueva compilación y prueba de hardware.
 La causa general de corrupción TLS sigue sin establecerse.
+
+Entrega 6ed23eb: el job RenPy8 de CI 36458810945 terminó correctamente.
+ELF verificado: SDL_RunThread/SDL_TLSSet usan los wrappers del almacenamiento
+TLS genérico y Controller.init llama al wrapper que habilita eventos.
+Los 279 archivos RomFS coinciden con sus entradas. NRO copiado a la SD y leído
+para verificar SHA-256, conservando el anterior. Pendiente nueva prueba en Switch.
