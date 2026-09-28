@@ -102,3 +102,27 @@ No hay empaquetado NSP de Agent17 ni monitor FPS/CPU/memoria integrado y
 validado. Solicitar 30 FPS no equivale a medirlos. La optimización de assets
 privados se realiza fuera del repositorio; nunca subir RPA, partidas, claves,
 NSP o datos del usuario al publicar cambios.
+
+## Vídeos reducidos y cambios de escena
+
+El inventario local de Agent17 contiene 371 WebM. Tres muestras eran VP9,
+1920×1080 a 60 FPS; no se deduce que todos tengan el mismo formato. Reducir la
+salida del renderer no reduce la resolución que FFmpeg debe decodificar.
+Se preparan overrides VP8 a un máximo de 960×540 y 30 FPS, conservando audio.
+Los archivos originales y el RPA permanecen intactos.
+
+```sh
+python3 tools/assets/transcode_webm_overrides.py /ruta/game/archive.rpa /ruta/overrides --ffmpeg /ruta/ffmpeg --width 960 --height 540 --fps 30 --bitrate 1400k
+python3 tools/assets/video_sizes.py /ruta/game/archive.rpa /ruta/overrides/switch-video-sizes.json
+```
+
+Copiar el árbol `movie/` y `switch-video-sizes.json` a `game/` para la prueba.
+Antes de reemplazar overrides existentes, respaldarlos. El manifiesto de la
+conversión contiene hashes. No copiar los datos privados al repositorio.
+El perfil del motor 8 usa los metadatos para conservar el tamaño original de
+Movie cuando el juego no declara un tamaño; mantiene tamaños explícitos y
+ajusta la anchura de máscaras laterales. Sin metadatos, no altera el tamaño.
+Comprobar el resultado visual en Switch antes de considerar validada esta
+optimización. La reducción implica menor detalle y no demuestra por sí sola
+que se hayan resuelto los cambios lentos de escenas con imágenes o la pantalla
+negra: para eso se necesitan los registros del arranque correspondiente.

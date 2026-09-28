@@ -20,3 +20,5 @@ artifacts-renpy8/
 *.rpa
 *.rpyc
 *.save
+/overrides/
+__pycache__/

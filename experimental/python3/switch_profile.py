@@ -4,6 +4,8 @@ _held = set()
 _triggers = set()
 _original_post_event = None
 _input_log_count = 0
+_video_sizes = {}
+_original_movie_render = None
 
 
 def map_pad_event(name):
@@ -34,7 +36,7 @@ def map_pad_event(name):
 
 
 def apply():
-    global _previous_map, _original_post_event
+    global _previous_map, _original_post_event, _original_movie_render
     import renpy
     preferences = renpy.game.preferences
     preferences.physical_size = (1280, 720)
@@ -49,6 +51,10 @@ def apply():
     if renpy.display.controller.post_event is not post_event:
         _original_post_event = renpy.display.controller.post_event
         renpy.display.controller.post_event = post_event
+    load_video_sizes(renpy.config.gamedir)
+    if renpy.display.video.Movie.render is not movie_render:
+        _original_movie_render = renpy.display.video.Movie.render
+        renpy.display.video.Movie.render = movie_render
     _held.clear()
     _triggers.clear()
     renpy.exports.write_log('Switch Lite profile: 1280x720, 30 FPS target; ZL/ZR hold to skip; optional URM L+R+X')
@@ -68,3 +74,31 @@ def post_event(control, state, repeat):
         return _original_post_event(control, state, repeat)
     finally:
         interface.keyboard_focused = focused
+
+
+def load_video_sizes(gamedir):
+    import os
+    import json
+    global _video_sizes
+    _video_sizes = {}
+    path = os.path.join(gamedir, 'switch-video-sizes.json')
+    if not os.path.isfile(path):
+        return
+    with open(path) as stream:
+        values = json.load(stream)
+    if not isinstance(values, dict):
+        raise ValueError('Video size metadata must be a mapping')
+    for name, size in values.items():
+        if (not isinstance(name, str) or not isinstance(size, list) or len(size) != 2
+                or any(type(v) is not int or v <= 0 or v > 16384 for v in size)):
+            raise ValueError('Invalid video dimensions for %r' % name)
+        _video_sizes[name] = tuple(size)
+
+
+def movie_render(movie, width, height, st, at):
+    # Only converted assets with metadata change; explicit game sizes win.
+    if movie.size is None and isinstance(movie.play, str):
+        size = _video_sizes.get(movie.play)
+        if size is not None:
+            movie.size = (size[0] // 2, size[1]) if movie.side_mask else size
+    return _original_movie_render(movie, width, height, st, at)
