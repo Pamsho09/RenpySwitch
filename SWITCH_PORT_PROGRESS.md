@@ -168,3 +168,9 @@ mantener la línea temporal cuando se atrasan cuadros. Se registra una muestra
 máxima de 64 cargas de imágenes de al menos 150ms para diagnosticar escenas
 lentas; no se afirma todavía una mejora en esos cambios de escena.
 Pendiente instalar NRO y recoger una nueva prueba en Switch.
+
+NRO e2e5967 instalado en SD con SHA-256 confirmado por lectura posterior y
+respaldo del anterior. Conserva URM, vídeos reducidos, metadatos y guardados.
+Informe local: reports/video-size-e2e5967-sd-install.json. La presentación
+a pantalla completa y los tiempos de cambio de escena requieren prueba
+en consola; las cargas lentas quedarán registradas en log.txt.
