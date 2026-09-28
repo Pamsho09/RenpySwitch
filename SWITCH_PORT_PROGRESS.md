@@ -93,3 +93,12 @@ ELF verificado: SDL_RunThread/SDL_TLSSet usan los wrappers del almacenamiento
 TLS genérico y Controller.init llama al wrapper que habilita eventos.
 Los 279 archivos RomFS coinciden con sus entradas. NRO copiado a la SD y leído
 para verificar SHA-256, conservando el anterior. Pendiente nueva prueba en Switch.
+
+Preparación local de vídeos (28 de septiembre): los 371 WebM se convirtieron
+a VP8, máximo 960×540 y 30 FPS. Se verificaron hashes y formato de los 371.
+El total pasó de 351.385.272 a 76.217.138 bytes (78,3% menos); esto mide tamaño,
+no rendimiento de Switch. Los metadatos preservan el tamaño virtual original
+(1920×1080 para todos los vídeos inventariados). NRO cbf77a8 reempaquetado y
+verificado localmente. No instalado: MTP sigue devolviendo LIBUSB_ERROR_NOT_FOUND
+y la SD aún no aparece montada. Pantalla negra y rendimiento pendientes de
+registros nuevos y prueba en hardware. Los assets permanecen fuera del repo.
