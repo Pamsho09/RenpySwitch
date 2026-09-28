@@ -114,3 +114,12 @@ vuelve directamente a hbmenu; fallos tras inicializar vídeo quedan en el log,
 y la consola solo se usa para fallos anteriores a la inicialización de vídeo.
 La SD contiene autoguardados y un slot manual; su existencia no confirma carga.
 Se preparan para instalación los 371 vídeos reducidos y metadatos de tamaño.
+
+Entrega SD completada: 40ce01b, job RenPy8 de CI 36462981873 correcto.
+279 archivos RomFS verificados; NRO copiado con lectura SHA-256 confirmada y
+respaldo del anterior. Los 371 vídeos VP8 reducidos y switch-video-sizes.json
+se copiaron a game/ sin modificar archive.rpa ni saves/. Hashes de los 371
+archivos comprobados en SD. Un slot manual y un autoguardado pasaron CRC de
+ZIP y contienen cabecera PNG válida; la carga en juego sigue pendiente.
+Pulsaciones SDL/RenPy comprobadas por registro. Fluidez, presentación de vídeo,
+regreso a hbmenu y pantalla negra pendientes de nueva prueba en consola.
