@@ -153,3 +153,7 @@ módulo; ahora expone ese callback antes del init. URM usa saves/0x52-URM para
 sus ajustes, y el callback de guardados del juego conserva saves/. Se comprobó
 el contrato con la clase de configuración inspeccionada y pruebas de rutas y
 serialización del callback. Pendiente instalar y repetir el arranque en Switch.
+
+Corrección 74624a9 instalada en SD y verificada por SHA-256, con respaldo del
+NRO anterior. Se comprobó presencia de URM y hook init998. La prueba del
+callback y los 279 archivos RomFS pasó; falta comprobar arranque/menú en Switch.
