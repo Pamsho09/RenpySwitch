@@ -27,9 +27,12 @@ def map_pad_event(name):
 
     # SDL maps physical Switch X to the logical Y button.
     if (name == 'pad_y_press' and
-            {'pad_leftshoulder', 'pad_rightshoulder'} <= _held and
-            hasattr(getattr(renpy.store, 'x52URM', None), 'Open')):
-        return ['alt_K_m']
+            {'pad_leftshoulder', 'pad_rightshoulder'} <= _held):
+        if hasattr(getattr(renpy.store, 'x52URM', None), 'Open'):
+            return ['alt_K_m']
+        renpy.exports.notify('0x52/URM no esta instalado o no se cargo.')
+        renpy.exports.write_log('URM shortcut ignored: mod not loaded')
+        return []
     if _previous_map is not None:
         return _previous_map(name)
     return renpy.config.pad_bindings.get(name, ())

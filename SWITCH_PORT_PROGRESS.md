@@ -123,3 +123,13 @@ archivos comprobados en SD. Un slot manual y un autoguardado pasaron CRC de
 ZIP y contienen cabecera PNG válida; la carga en juego sigue pendiente.
 Pulsaciones SDL/RenPy comprobadas por registro. Fluidez, presentación de vídeo,
 regreso a hbmenu y pantalla negra pendientes de nueva prueba en consola.
+
+
+Atajo URM: la última lectura de game/ en la SD no contenía 0x52_URM.rpa.
+Sin el mod, L+R+X caía en la acción normal hide_windows del botón lógico Y.
+El perfil ahora consume esa combinación y muestra aviso de mod no instalado
+si x52URM.Open no existe. X sin la combinación conserva su acción habitual.
+Esto explica una posible pantalla oscura al probar el atajo; no demuestra
+que todas las pantallas negras reportadas tengan esa causa. Pendiente instalar
+este cambio y comprobarlo. El archivo del mod disponible en el proyecto local
+no se copia automáticamente ni se publica en el repositorio.
