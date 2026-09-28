@@ -24,10 +24,17 @@ int main(void)
         if (initialized)
             ok = PyRun_SimpleString("import game_entry; game_entry.run()") == 0;
     }
+    int had_video = SDL_WasInit(SDL_INIT_VIDEO) != 0;
     SDL_Quit();
     if (!ok && !error[0])
         snprintf(error, sizeof error, "Read switch/agent17/boot-errors.txt on the SD.");
-    probe_show_result("Game bootstrap", ok, error);
+    /* SDL owns the native window after video init. The libnx console cannot
+       safely acquire its old framebuffer after SDL_Quit. Normal game exit
+       should return directly to hbmenu; errors stay in the SD log. */
+    if (!ok && !had_video)
+        probe_show_result("Game bootstrap", ok, error);
+    else if (!ok)
+        fprintf(stderr, "Game bootstrap failed: %s\n", error);
     /* The OS reclaims Python after exit. Engine threads must not access a
        partially finalized interpreter if startup failed halfway through. */
     romfsExit();

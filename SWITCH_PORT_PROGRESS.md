@@ -102,3 +102,15 @@ no rendimiento de Switch. Los metadatos preservan el tamaño virtual original
 verificado localmente. No instalado: MTP sigue devolviendo LIBUSB_ERROR_NOT_FOUND
 y la SD aún no aparece montada. Pantalla negra y rendimiento pendientes de
 registros nuevos y prueba en hardware. Los assets permanecen fuera del repo.
+
+
+Prueba SD siguiente: el registro de 17:45:34 UTC contiene pulsaciones SDL y
+RenPy y termina con "RenPy exited normally". Informe de 18:02:20 UTC
+01790618540_0197bb45716e0000.log: User Break en framebufferBegin, desde
+ConsoleSwRenderer_flushAndSwap y main. Se corrigió una lectura inicial errónea
+de la hora: este informe es posterior al arranque. El lanzador intentaba
+mostrar la consola de diagnóstico después de SDL_Quit. Ahora la salida normal
+vuelve directamente a hbmenu; fallos tras inicializar vídeo quedan en el log,
+y la consola solo se usa para fallos anteriores a la inicialización de vídeo.
+La SD contiene autoguardados y un slot manual; su existencia no confirma carga.
+Se preparan para instalación los 371 vídeos reducidos y metadatos de tamaño.
