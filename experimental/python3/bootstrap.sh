@@ -263,6 +263,7 @@ read -r -a switch_libs <<< "$(pkg-config --libs --static \
     zlib harfbuzz fribidi)"
 "$CC" -O2 -fPIE -D__SWITCH__ \
     -IInclude -I. -I"$DEVKITPRO/libnx/include" \
+    -I"$DEVKITPRO/portlibs/switch/include/SDL2" \
     "$project_root/experimental/python3/link_probe.c" \
     /tmp/python3-switch/static_modules.c \
     "$project_root/experimental/python3/eh_tls_guard.c" \
