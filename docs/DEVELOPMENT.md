@@ -8,7 +8,7 @@
   publica el árbol del motor 7 y ELF comprimido con símbolos.
 - `renpy8`: `scripts/build-renpy8.sh` ejecuta `experimental/python3/bootstrap.sh`.
   Compila CPython 3.9.21, pygame_sdl2, módulos Cython de Ren’Py 8.3.7 y soporte
-  nativo. Produce `smoke.nro`, `link-probe.nro`, `agent17.nro` y sus ELF.
+  nativo. Produce las pruebas `smoke.nro`, `link-probe.nro` y el lanzador, con sus ELF.
 
 El lanzador C monta RomFS, registra los módulos e inicia Python. `game_entry.py`
 prepara las rutas SD, recursos comunes escribibles y callbacks del lanzador.
@@ -16,7 +16,7 @@ prepara las rutas SD, recursos comunes escribibles y callbacks del lanzador.
 `switch_profile.py` aplica resolución, controles y diagnóstico de entrada.
 
 Los ZIP llevan código Python; el ELF lleva módulos nativos y bibliotecas.
-Los datos del juego se leen por separado desde SD. Los parches Ren’Py 7 no se
+Los recursos externos se leen por separado desde SD. Los parches Ren’Py 7 no se
 aplican automáticamente al motor 8. Las diferencias de API y Python importan.
 
 ## macOS y compilación remota
@@ -32,60 +32,53 @@ gh run list --repo Pamsho09/RenpySwitch --branch main
 gh run download RUN_ID --repo Pamsho09/RenpySwitch --name renpy-switch-renpy8 --dir artifacts-renpy8
 ```
 
-Los nombres antiguos `renpy-switch-runtime` corresponden a ejecuciones previas
-a la integración. Conserva commit, ID de CI, ELF y hash junto con cada entrega.
-
+Conserva commit, ID de CI, ELF y hash junto con cada entrega.
 Cambios solo Python pueden reempaquetarse con el último ELF compatible;
 conservar todos los parches previos del ZIP. Cambios C, Cython, CPython, SDL,
-FFmpeg o enlazador requieren recompilación. Al crear un NRO, pasar **NACP y
-RomFS**, y ejecutar `verify_nro.py` contra el árbol de entrada. No sustituir el
+FFmpeg o enlazador requieren recompilación. Al crear un NRO, pasar NACP y
+RomFS, y ejecutar `verify_nro.py` contra el árbol de entrada. No sustituir el
 NRO si falla esta verificación. El pipeline del motor 8 ya la ejecuta.
 
 ## Conexión directa por DBI
 
 1. Conecta Switch por USB y abre **DBI → Run MTP responder**.
-2. En macOS, abre la tarjeta SD mediante un cliente MTP compatible, por ejemplo
-   OpenMTP. No es un volumen montado en `/Volumes`.
-3. Transfiere el NRO a `/switch/agent17/agent17-update.nro`.
+2. En macOS, abre la tarjeta SD mediante un cliente MTP compatible.
+   No es un volumen montado en `/Volumes`.
+3. Consulta las rutas fijas de `game_entry.py` y `game_main.c` y transfiere el
+   NRO a esa carpeta con un nombre temporal.
 4. Descarga esa copia y compara SHA-256 con el archivo local.
-5. Renombra el anterior con extensión `.nro.backup` y el nuevo a `agent17.nro`.
-   Conserva juegos, partidas y caché. Si falla la sustitución, restaura el nombre.
-6. Cierra la sesión MTP, sal de DBI y ejecuta el juego. Regresa a MTP tras probar.
+5. Conserva el NRO anterior con extensión `.nro.backup` y renombra el nuevo
+   con el nombre de instalación. Conserva recursos, guardados y caché.
+6. Cierra la sesión MTP, sal de DBI y ejecuta el lanzador.
 
-En esta sesión se automatizó con la biblioteca ARM64 Kalam incluida en
-OpenMTP, usando ctypes: Initialize, FetchStorages, Walk, UploadFiles,
-DownloadFiles, RenameFile y Dispose. Es una interfaz interna, no una dependencia
-estable del motor. Seleccionar la SD por descripción, cerrar siempre Dispose y
-no abrir dos sesiones MTP concurrentes. Los scripts locales de despliegue no
-forman parte del runtime ni se requieren para copiar con el cliente gráfico.
-No usar `diskutil eject` para una conexión DBI/MTP.
+No abrir dos sesiones MTP concurrentes ni usar `diskutil eject` para DBI/MTP.
+Si falla la sustitución, restaura el nombre del NRO anterior.
 
 ## Diagnóstico reproducible
 
-Recoger de `/switch/agent17/`:
+Recoger de la carpeta del lanzador:
 
-- `boot-stage.txt`: último hito del lanzador (no se actualiza por cada escena).
+- `boot-stage.txt`: último hito del lanzador.
 - `boot-errors.txt`: stderr e imports del arranque.
 - `logs/log.txt`: inicialización, renderer, mandos y eventos recientes.
 - `logs/traceback.txt`: excepción Python, si existe. Puede pertenecer a un arranque
   anterior; comparar contenido y hora con el log actual.
 
 Para cierre nativo, recuperar el informe correspondiente de
-`/atmosphere/crash_reports/`. No deducir frescura de fechas MTP: en esta sesión
-DBI reportó fechas de 1969. El informe incluye módulo, PC y retornos. Resolver
-los offsets `agent17 + 0x...` con **el ELF del mismo binario instalado**. Un
-traceback Python antiguo no explica un Data Abort nuevo.
+`/atmosphere/crash_reports/`. No deducir frescura solo de fechas MTP.
+El informe incluye módulo, PC y retornos. Resolver offsets con el ELF del
+mismo binario instalado; un traceback antiguo no explica un Data Abort nuevo.
 
-Ejemplo con las herramientas del compilador, dentro del entorno que las tenga:
+Ejemplo, sustituyendo `LANZADOR.elf` por el ELF de la compilación instalada:
 
 ```sh
-aarch64-none-elf-addr2line -f -C -e agent17.elf 0xOFFSET
+aarch64-none-elf-addr2line -f -C -e LANZADOR.elf 0xOFFSET
 ```
 
-Registrar síntoma, versión, escena, botones usados, táctil, resultado, último
-hito y símbolos. El guard de TLS C++ comprueba un desplazamiento específico de
-la libstdc++ fijada: si cambia el toolchain hay que verificar el constructor y
-la redirección a `__wrap_pthread_key_create` de nuevo.
+Registrar síntoma, versión, pasos de reproducción, botones usados, táctil,
+resultado, último hito y símbolos. El guard de TLS C++ comprueba un
+desplazamiento específico de la libstdc++ fijada: si cambia el toolchain,
+verificar el constructor y la redirección a `__wrap_pthread_key_create`.
 
 ## Alcance y pendientes
 
@@ -98,18 +91,13 @@ el estado de callbacks. No demuestra que el TLS de todas las bibliotecas esté
 corregido. El guard C++ también sigue siendo una mitigación. El teclado,
 autoguardado, vídeos y mandos requieren pruebas completas en hardware.
 
-No hay empaquetado NSP de Agent17 ni monitor FPS/CPU/memoria integrado y
-validado. Solicitar 30 FPS no equivale a medirlos. La optimización de assets
-privados se realiza fuera del repositorio; nunca subir RPA, partidas, claves,
-NSP o datos del usuario al publicar cambios.
+El empaquetado NSP y el monitor FPS/CPU/memoria no están integrados y validados
+para el motor 8. Solicitar 30 FPS no equivale a medirlos.
 
-## Vídeos reducidos y cambios de escena
+## Herramientas de vídeo
 
-El inventario local de Agent17 contiene 371 WebM. Tres muestras eran VP9,
-1920×1080 a 60 FPS; no se deduce que todos tengan el mismo formato. Reducir la
-salida del renderer no reduce la resolución que FFmpeg debe decodificar.
-Se preparan overrides VP8 a un máximo de 960×540 y 30 FPS, conservando audio.
-Los archivos originales y el RPA permanecen intactos.
+Reducir la salida del renderer no reduce la resolución que FFmpeg debe
+decodificar. Las herramientas permiten preparar overrides VP8 conservando audio:
 
 ```sh
 python3 tools/assets/transcode_webm_overrides.py /ruta/game/archive.rpa /ruta/overrides --ffmpeg /ruta/ffmpeg --width 960 --height 540 --fps 30 --bitrate 1400k
@@ -118,22 +106,18 @@ python3 tools/assets/video_sizes.py /ruta/game/archive.rpa /ruta/overrides/switc
 
 Copiar el árbol `movie/` y `switch-video-sizes.json` a `game/` para la prueba.
 Antes de reemplazar overrides existentes, respaldarlos. El manifiesto de la
-conversión contiene hashes. No copiar los datos privados al repositorio.
+conversión contiene hashes. Mantener los recursos externos fuera del repositorio.
 El perfil del motor 8 usa los metadatos para conservar el tamaño original de
-Movie cuando el juego no declara un tamaño; mantiene tamaños explícitos y
-ajusta la anchura de máscaras laterales. Sin metadatos, no altera el tamaño.
-Comprobar el resultado visual en Switch antes de considerar validada esta
-optimización. La reducción implica menor detalle y no demuestra por sí sola
-que se hayan resuelto los cambios lentos de escenas con imágenes o la pantalla
-negra: para eso se necesitan los registros del arranque correspondiente.
+Movie cuando no se declara un tamaño; mantiene tamaños explícitos y ajusta
+la anchura de máscaras laterales. Sin metadatos, no altera el tamaño.
+La reducción implica menor detalle y requiere validación visual en hardware.
 
-## Mod opcional URM en el motor 8
+## Extensión opcional
 
-Cuando el propietario lo solicite, copiar su `0x52_URM.rpa` a `game/`, junto
-con `experimental/python3/switch_urm_compat.rpy`. Este hook ejecuta init 998,
-antes del chequeo automático de actualizaciones del mod (init 999), y usa
-una función del perfil del motor para evitar esa comprobación de red.
-Requiere un NRO actualizado que contenga `skip_urm_update`. No es parte del
-mod ni reemplaza su archivo. Mantener L+R y pulsar X abre Alt+M cuando
-x52URM.Open existe; sin el mod se avisa y no se oculta la interfaz.
-El archivo del mod se entrega por separado y su menú necesita prueba en Switch.
+`experimental/python3/switch_urm_compat.rpy` proporciona un hook de
+compatibilidad para una extensión suministrada por separado. Ejecuta init 998
+para desactivar la comprobación automática de red antes de init 999.
+Requiere un NRO que contenga `skip_urm_update`. Mantener L+R y pulsar X abre
+Alt+M cuando `x52URM.Open` existe; si falta, muestra un aviso.
+El lanzador expone `__main__.path_to_saves` para sus ajustes. El hook y el
+atajo no incluyen ni instalan la extensión; su menú requiere prueba en hardware.
